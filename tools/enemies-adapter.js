@@ -1,27 +1,33 @@
 // DocumentsTabletopPals/tools/enemies-adapter.js
-// Validating Publish–Subscribe adapter + BroadcastChannel + openAdmin()
+// Validating Publish–Subscribe adapter + BroadcastChannel + robust Admin URL auto-detect
 
 (() => {
   const ENEMIES_PUBLISH_KEY = 'tp_enemies_data_v1';
   const ENEMIES_PING_KEY    = 'tp_enemies_public_v1';
 
-  // Resolve admin path from <script data-admin-path>, else default:
-// Try to get the <script> that loaded this file
-const SCRIPT =
-  document.querySelector('#enemies-adapter') ||
-  document.currentScript ||
-  document.querySelector('script[src*="enemies-adapter.js"]');
+  // ---------- Admin URL detection (works on GitHub Project Pages) ----------
+  // We resolve the Admin URL *relative to the adapter script's own URL*,
+  // so if your site is https://user.github.io/REPO/, this becomes /REPO/admin/enemy-builder/
+  const SCRIPT =
+    document.querySelector('#enemies-adapter') ||
+    document.currentScript ||
+    document.querySelector('script[src*="enemies-adapter.js"]');
 
-// Compute the site root from the script's src so it works on GitHub Project Pages
-let ADMIN_PATH = '/admin/enemy-builder/'; // default root
-try {
-  const scriptURL = SCRIPT ? new URL(SCRIPT.getAttribute('src'), document.baseURI) : null;
-  // e.g. /<REPO>/tools/enemies-adapter.js  ->  /<REPO>
-  const baseRoot = scriptURL ? scriptURL.pathname.replace(/\/tools\/enemies-adapter\.js.*$/,'') : '';
-  const auto = baseRoot ? (baseRoot + '/admin/enemy-builder/') : null;
-  // Priority: explicit data-admin-path > auto-detected > default
-  ADMIN_PATH = (SCRIPT?.dataset?.adminPath) || auto || ADMIN_PATH;
-} catch {}
+  let ADMIN_URL;
+  try {
+    // Absolute URL of this script (handles ../../ paths correctly)
+    const scriptURL = new URL(SCRIPT?.getAttribute('src') || '', document.baseURI);
+    // If you explicitly pass data-admin-path, resolve it relative to the script URL
+    if (SCRIPT?.dataset?.adminPath) {
+      ADMIN_URL = new URL(SCRIPT.dataset.adminPath, scriptURL);
+    } else {
+      // Default: "../admin/enemy-builder/" relative to /REPO/tools/enemies-adapter.js -> /REPO/admin/enemy-builder/
+      ADMIN_URL = new URL('../admin/enemy-builder/', scriptURL);
+    }
+  } catch {
+    // Fallback (shouldn't be needed): open a relative admin path from current page
+    ADMIN_URL = new URL('admin/enemy-builder/', window.location.href);
+  }
 
   // BroadcastChannel (best-effort)
   let bc = null;
@@ -105,7 +111,7 @@ try {
   function reload(){ load(); }
   function get(){ return cache.slice(); }
   function status(){ return { ...lastStatus }; }
-  function openAdmin(){ window.open(ADMIN_PATH, '_blank', 'noopener'); }
+  function openAdmin(){ window.open(ADMIN_URL.href, '_blank', 'noopener'); }
 
   // init
   load();
