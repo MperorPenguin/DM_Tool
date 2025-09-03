@@ -1,15 +1,10 @@
 :root{
   /* === Brand tokens (official names) === */
-  --lime-green: #d6ed17;      /* Lime Green */
-  --midnight-blue: #000e1b;   /* Midnight Blue */
 
-  /* Tones */
-  --lime-600:#c6de10;
-  --lime-700:#a7c60e;
+ @import url("./CSS/theme.css");
 
-  /* App text + borders */
-  --text:#e9ecf1;
-  --border:#23283a;
+-  --panel: var(--midnight);
++  --panel: #1b2024; /* dark card/panel on the new background */
 
   /* === Legacy aliases (keep old code working) === */
   --midnight: var(--midnight-blue);

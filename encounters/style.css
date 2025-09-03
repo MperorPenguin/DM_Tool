@@ -1,11 +1,7 @@
 /* DND Project — Root Theme */
 :root {
-  --lime-green: #d6ed17;      /* Lime Green */
-  --midnight-blue: #000e1b;   /* Midnight Blue */
-  --lime-600: #c6de10;
-  --lime-700: #a7c60e;
-  --text: #d7e6ff;
-  --border: #0f2a44;
+@import url("./CSS/theme.css");
+
 }
 
 html, body {
