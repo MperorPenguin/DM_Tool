@@ -170,6 +170,67 @@ function difficulty(levels, ruleset){
   else if(adjusted <= t.hard) band = "Hard";
   return { t, base, mult, adjusted, band };
 }
+// ---- Published enemies wiring (auto-sync + optional autofill) ----
+let PUBLISHED = [];
+
+function enemiesSubscribe(){
+  if (!window.EnemiesAdapter) return;
+  window.EnemiesAdapter.subscribe(list => { PUBLISHED = Array.isArray(list)? list : []; });
+  // also show toasts if you kept the subscribeStatus block from earlier
+}
+
+function findPublishedByNameLike(q){
+  if(!q) return null;
+  const s = String(q).trim().toLowerCase();
+  return PUBLISHED.find(e => (e.name||'').toLowerCase() === s)
+      || PUBLISHED.find(e => (e.slug||'') === s.replace(/[^a-z0-9]+/g,'-'))
+      || PUBLISHED.find(e => (e.name||'').toLowerCase().startsWith(s))
+      || PUBLISHED.find(e => (e.name||'').toLowerCase().includes(s))
+      || null;
+}
+function autofillFromPublished(){
+  const nm = document.getElementById('m-name'); if(!nm) return;
+  const row = findPublishedByNameLike(nm.value); if(!row) return;
+  const setIfEmpty = (id,val)=>{ const el=document.getElementById(id); if(el && !el.value) el.value = String(val ?? ''); };
+  setIfEmpty('m-cr', row.cr || '');
+  const xpEl = document.getElementById('m-xp');
+  if (row.cr && xpEl && !xpEl.value) xpEl.value = (row.xp ?? '');
+  setIfEmpty('m-ac', row.ac);
+  setIfEmpty('m-hp', row.hp);
+}
+
+// ---- “Open Enemy Admin” button (injected; no HTML change needed) ----
+function injectEnemyAdminButton(){
+  if (!window.EnemiesAdapter) return;
+  const btn = document.createElement('button');
+  btn.className = 'btn ghost';
+  btn.type = 'button';
+  btn.textContent = 'Enemy Admin';
+  btn.style.marginLeft = '.5rem';
+
+  btn.addEventListener('click', () => {
+    window.EnemiesAdapter.openAdmin();
+  });
+
+  // Try to place it in a common actions area; fall back to a floating button
+  const spots = [
+    '.site-head .actions',
+    '#encHeader .actions',
+    '#groupsHeader .actions',
+    'header .actions'
+  ];
+  for(const sel of spots){
+    const host = document.querySelector(sel);
+    if(host){ host.appendChild(btn); return; }
+  }
+  // fallback (floating)
+  const floater = btn.cloneNode(true);
+  floater.style.position = 'fixed';
+  floater.style.right = '1rem';
+  floater.style.bottom = '1rem';
+  floater.style.zIndex = '9999';
+  document.body.appendChild(floater);
+}
 
 // ---------- Party (shared via localStorage['tp_cc_characters']) ----------
 function getParty(){ return load('tp_cc_characters', []); }
