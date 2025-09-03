@@ -1,4 +1,3 @@
-<!-- =============== index.html =============== -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,7 +22,6 @@
   </header>
 
   <main class="wrap grid cols-3 gap">
-    <!-- Left: List/Search -->
     <aside class="card pane" aria-label="Enemy list">
       <div class="pad-sm">
         <label class="field">
@@ -60,15 +58,11 @@
       <ul id="enemy-list" class="list"></ul>
     </aside>
 
-    <!-- Right (2 cols): Form -->
     <section class="card pane col-span-2" aria-label="Enemy editor">
       <form id="enemy-form" class="pad">
         <fieldset class="grid cols-3 gap-sm">
           <legend>Basics</legend>
-          <label class="field">
-            <span>Name</span>
-            <input id="name" required placeholder="Goblin Skirmisher" />
-          </label>
+          <label class="field"><span>Name</span><input id="name" required placeholder="Goblin Skirmisher" /></label>
           <label class="field">
             <span>Size</span>
             <select id="size">
@@ -85,10 +79,7 @@
               <option>Monstrosity</option><option>Ooze</option><option>Plant</option><option>Undead</option>
             </select>
           </label>
-          <label class="field">
-            <span>Alignment</span>
-            <input id="alignment" placeholder="Neutral Evil" />
-          </label>
+          <label class="field"><span>Alignment</span><input id="alignment" placeholder="Neutral Evil" /></label>
           <label class="field">
             <span>CR</span>
             <select id="cr">
@@ -101,10 +92,7 @@
               <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option>
             </select>
           </label>
-          <label class="field">
-            <span>Tags <span class="tiny muted">comma-separated</span></span>
-            <input id="tags" placeholder="goblin, skirmisher, ranged" />
-          </label>
+          <label class="field"><span>Tags <span class="tiny muted">comma-separated</span></span><input id="tags" placeholder="goblin, skirmisher, ranged" /></label>
         </fieldset>
 
         <fieldset class="grid cols-6 gap-sm">
@@ -129,14 +117,8 @@
 
         <fieldset class="grid cols-2 gap-sm">
           <legend>Traits & Actions</legend>
-          <label class="field">
-            <span>Traits <span class="tiny muted">Markdown ok</span></span>
-            <textarea id="traits" rows="6" placeholder="Nimble Escape. The goblin can Disengage or Hide as a bonus action on each of its turns."></textarea>
-          </label>
-          <label class="field">
-            <span>Actions <span class="tiny muted">Markdown ok</span></span>
-            <textarea id="actions" rows="6" placeholder="Scimitar. *Melee Weapon Attack:* +4 to hit, reach 5 ft., one target. *Hit:* 5 (1d6 + 2) slashing damage."></textarea>
-          </label>
+          <label class="field"><span>Traits <span class="tiny muted">Markdown ok</span></span><textarea id="traits" rows="6"></textarea></label>
+          <label class="field"><span>Actions <span class="tiny muted">Markdown ok</span></span><textarea id="actions" rows="6"></textarea></label>
           <label class="field"><span>Reactions</span><textarea id="reactions" rows="4"></textarea></label>
           <label class="field"><span>Legendary Actions</span><textarea id="legendary" rows="4"></textarea></label>
         </fieldset>
