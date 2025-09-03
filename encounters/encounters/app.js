@@ -44,64 +44,63 @@ const $$ = (s) => [...document.querySelectorAll(s)];
 const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
 const uid = (p="id") => p + Math.random().toString(36).slice(2,8);
 
-// ================================================
-// Published Enemies Adapter (non-invasive integration)
-// ================================================
-let PUBLISHED = []; // latest published enemies from Admin tool
 
-function enemiesSubscribe(){
-  // Optional: if the adapter is not included, everything still works.
-  if (!window.EnemiesAdapter) return;
-
-  window.EnemiesAdapter.subscribe(list => {
-    PUBLISHED = Array.isArray(list) ? list : [];
-    // Nudge the user that auto-fill is available (no HTML changes)
-    const nm = document.getElementById('m-name');
-    if (nm && !nm.dataset.placeholderSet){
-      nm.dataset.placeholderSet = '1';
-      nm.placeholder = 'Goblin (auto-fills from published enemies)';
-    }
-  });
+// --- Toast helpers (no HTML edits needed) ---
+function ensureToastHost(){
+  if (document.getElementById('tp_toast_host')) return;
+  const host = document.createElement('div');
+  host.id = 'tp_toast_host';
+  host.setAttribute('aria-live', 'polite');
+  host.style.position = 'fixed';
+  host.style.zIndex = '9999';
+  host.style.right = '1rem';
+  host.style.bottom = '1rem';
+  host.style.display = 'grid';
+  host.style.gap = '.5rem';
+  document.body.appendChild(host);
 }
+function showToast(msg, type='info', details){
+  ensureToastHost();
+  const el = document.createElement('div');
+  el.role = 'status';
+  el.style.background = getComputedStyle(document.documentElement).getPropertyValue('--color-surface-2') || '#1b2024';
+  el.style.border = '1px solid var(--color-border)';
+  el.style.color = 'var(--color-text)';
+  el.style.borderRadius = '12px';
+  el.style.padding = '.6rem .8rem';
+  el.style.boxShadow = '0 6px 20px rgba(0,0,0,.35)';
+  el.style.maxWidth = '360px';
+  el.style.fontSize = '.95rem';
 
-function slugify(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+  const badge = document.createElement('strong');
+  badge.style.display = 'inline-block';
+  badge.style.marginRight = '.5rem';
+  badge.textContent = type === 'success' ? '✓' : (type === 'error' ? '⚠' : '●');
+  badge.style.color = type === 'success' ? 'var(--color-primary)' : (type === 'error' ? '#ff6b6b' : 'var(--color-text)');
 
-function findPublished(query){
-  if (!query) return null;
-  const ql = query.trim().toLowerCase();
-  const qs = slugify(query);
-  // exact name
-  let m = PUBLISHED.find(e => (e.name||'').toLowerCase() === ql);
-  if (m) return m;
-  // exact slug
-  m = PUBLISHED.find(e => (e.slug||'') === qs);
-  if (m) return m;
-  // startsWith → includes
-  m = PUBLISHED.find(e => (e.name||'').toLowerCase().startsWith(ql));
-  if (m) return m;
-  return PUBLISHED.find(e => (e.name||'').toLowerCase().includes(ql)) || null;
-}
+  const span = document.createElement('span');
+  span.textContent = msg;
 
-/** Auto-fill monster form fields from the published bestiary (CR/XP/AC/HP). */
-function autofillFromPublished(){
-  const nameEl = document.getElementById('m-name');
-  if(!nameEl) return;
-  const row = findPublished(nameEl.value);
-  if (!row) return;
+  el.appendChild(badge);
+  el.appendChild(span);
 
-  const setIfEmpty = (id, val) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (!el.value) el.value = String(val ?? '');
-  };
-
-  setIfEmpty('m-cr', row.cr || '');
-  if (row.cr) {
-    const xpEl = document.getElementById('m-xp');
-    if (xpEl && !xpEl.value) xpEl.value = XP_BY_CR[row.cr] || 0;
+  if (details && Array.isArray(details) && details.length){
+    const btn = document.createElement('button');
+    btn.className = 'btn ghost sm';
+    btn.style.marginLeft = '.5rem';
+    btn.textContent = 'Details';
+    btn.onclick = () => {
+      console.group('[Enemies Adapter] Details');
+      details.forEach((d) => console.log(d));
+      console.groupEnd();
+      btn.disabled = true;
+      btn.textContent = 'Logged to Console';
+    };
+    el.appendChild(btn);
   }
-  setIfEmpty('m-ac', row.ac);
-  setIfEmpty('m-hp', row.hp);
+
+  document.getElementById('tp_toast_host').appendChild(el);
+  setTimeout(() => el.remove(), type === 'error' ? 8000 : 4000);
 }
 
 // ---------- Core math helpers ----------
@@ -618,9 +617,6 @@ function onPartyToggle(e){
 }
 function onMonsterForm(e){
   e.preventDefault();
-  // Attempt a last-second fill from published if the name matches and fields are empty
-  autofillFromPublished();
-
   const name = $('#m-name').value.trim() || 'Creature';
   const cr = $('#m-cr').value.trim() || '';
   const xp = parseInt($('#m-xp').value || (XP_BY_CR[cr]||0), 10);
@@ -649,15 +645,20 @@ function onRulesetToggle(){
 function boot(){
   document.addEventListener('click', onTabClick);
 
-  // Hook adapter (if present)
-  enemiesSubscribe();
-  // Gentle auto-fill: when you leave the name field, try to fill CR/XP/AC/HP
-  document.getElementById('m-name')?.addEventListener('blur', autofillFromPublished);
-  // If CR changes and XP is empty, populate from table
-  document.getElementById('m-cr')?.addEventListener('change', () => {
-    const cr = $('#m-cr').value.trim();
-    if (cr && !$('#m-xp').value) $('#m-xp').value = XP_BY_CR[cr] || 0;
-  });
+  // Show success/failure when the enemies adapter loads or refreshes
+  if (window.EnemiesAdapter && window.EnemiesAdapter.subscribeStatus){
+    window.EnemiesAdapter.subscribeStatus((st) => {
+      if (st.ok){
+        showToast(`Enemies loaded: ${st.count} available.`, 'success');
+        if (st.warnings && st.warnings.length){
+          showToast(`Loaded with ${st.warnings.length} warning(s).`, 'info', st.warnings.slice(0,5));
+        }
+      } else {
+        const reasons = (st.errors && st.errors.length) ? st.errors.slice(0,5) : ['Unknown validation error'];
+        showToast(`Enemies data invalid — ${st.errors ? st.errors.length : '?'} issue(s).`, 'error', reasons);
+      }
+    });
+  }
 
   // Party init
   loadParty();
