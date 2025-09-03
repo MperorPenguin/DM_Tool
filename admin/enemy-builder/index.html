@@ -1,0 +1,95 @@
+!-- =============== index.html =============== --
+!DOCTYPE html
+html lang=en
+head
+meta charset=utf-8 
+meta name=viewport content=width=device-width, initial-scale=1 
+titleEnemy Builder — Admintitle
+link rel=stylesheet href=style.css 
+head
+body
+header class=site-head
+div class=wrap row between center
+h1Enemy Builder span class=muted tiny(Admin)spanh1
+nav class=actions
+button id=btn-new class=btnNew Enemybutton
+button id=btn-bulk class=btn ghostQuick Generatebutton
+button id=btn-export class=btn ghostExport JSONbutton
+button id=btn-import class=btn ghostImport JSONbutton
+input id=file-import type=file accept=applicationjson hidden 
+button id=btn-publish class=btnPublish to Encountersbutton
+nav
+div
+header
+
+
+main class=wrap grid cols-3 gap
+!-- Left ListSearch --
+aside class=card pane aria-label=Enemy list
+div class=pad-sm
+label class=field
+spanSearchspan
+input id=search type=search placeholder=Name, CR, type, tag… 
+label
+div class=filters row wrap gap-sm mt-sm
+label class=field short
+spanTypespan
+select id=filter-type
+option value=Anyoption
+optionAberrationoption
+optionBeastoption
+optionCelestialoption
+optionConstructoption
+optionDragonoption
+optionElementaloption
+optionFeyoption
+optionFiendoption
+optionGiantoption
+optionHumanoidoption
+optionMonstrosityoption
+optionOozeoption
+optionPlantoption
+optionUndeadoption
+select
+label
+label class=field short
+spanCR ≤span
+select id=filter-cr
+option value=Anyoption
+option0optionoption18optionoption14optionoption12option
+option1optionoption2optionoption3optionoption4optionoption5option
+option6optionoption7optionoption8optionoption9optionoption10option
+option11optionoption12optionoption13optionoption14optionoption15option
+option16optionoption17optionoption18optionoption19optionoption20option
+option21optionoption22optionoption23optionoption24optionoption25option
+option26optionoption27optionoption28optionoption29optionoption30option
+select
+label
+div
+div
+ul id=enemy-list class=listul
+aside
+
+
+!-- Right (2 cols) Form --
+section class=card pane col-span-2 aria-label=Enemy editor
+form id=enemy-form class=pad
+fieldset class=grid cols-3 gap-sm
+legendBasicslegend
+label class=field
+spanNamespan
+input id=name required placeholder=Goblin Skirmisher 
+label
+label class=field
+spanSizespan
+select id=size
+optionTinyoptionoptionSmalloptionoption selectedMediumoption
+optionLargeoptionoptionHugeoptionoptionGargantuanoption
+select
+label
+label class=field
+spanTypespan
+select id=type
+optionAberrationoptionoptionBeastoptionoptionCelestialoption
+optionConstructoptionoptionDragonoptionoptionElementaloption
+html

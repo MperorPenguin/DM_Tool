@@ -44,6 +44,66 @@ const $$ = (s) => [...document.querySelectorAll(s)];
 const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
 const uid = (p="id") => p + Math.random().toString(36).slice(2,8);
 
+// ================================================
+// Published Enemies Adapter (non-invasive integration)
+// ================================================
+let PUBLISHED = []; // latest published enemies from Admin tool
+
+function enemiesSubscribe(){
+  // Optional: if the adapter is not included, everything still works.
+  if (!window.EnemiesAdapter) return;
+
+  window.EnemiesAdapter.subscribe(list => {
+    PUBLISHED = Array.isArray(list) ? list : [];
+    // Nudge the user that auto-fill is available (no HTML changes)
+    const nm = document.getElementById('m-name');
+    if (nm && !nm.dataset.placeholderSet){
+      nm.dataset.placeholderSet = '1';
+      nm.placeholder = 'Goblin (auto-fills from published enemies)';
+    }
+  });
+}
+
+function slugify(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+
+function findPublished(query){
+  if (!query) return null;
+  const ql = query.trim().toLowerCase();
+  const qs = slugify(query);
+  // exact name
+  let m = PUBLISHED.find(e => (e.name||'').toLowerCase() === ql);
+  if (m) return m;
+  // exact slug
+  m = PUBLISHED.find(e => (e.slug||'') === qs);
+  if (m) return m;
+  // startsWith → includes
+  m = PUBLISHED.find(e => (e.name||'').toLowerCase().startsWith(ql));
+  if (m) return m;
+  return PUBLISHED.find(e => (e.name||'').toLowerCase().includes(ql)) || null;
+}
+
+/** Auto-fill monster form fields from the published bestiary (CR/XP/AC/HP). */
+function autofillFromPublished(){
+  const nameEl = document.getElementById('m-name');
+  if(!nameEl) return;
+  const row = findPublished(nameEl.value);
+  if (!row) return;
+
+  const setIfEmpty = (id, val) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!el.value) el.value = String(val ?? '');
+  };
+
+  setIfEmpty('m-cr', row.cr || '');
+  if (row.cr) {
+    const xpEl = document.getElementById('m-xp');
+    if (xpEl && !xpEl.value) xpEl.value = XP_BY_CR[row.cr] || 0;
+  }
+  setIfEmpty('m-ac', row.ac);
+  setIfEmpty('m-hp', row.hp);
+}
+
 // ---------- Core math helpers ----------
 function parseDiceAvg(expr){
   if(!expr) return {avg:0, avgCrit:0};
@@ -54,13 +114,12 @@ function parseDiceAvg(expr){
   return { avg: n * dieAvg + b, avgCrit: (n * 2) * dieAvg + b };
 }
 function hitChance(attackBonus, targetAC, adv="normal"){
-  // 5% floor, 95% ceiling; 20 always hits, 1 always misses (approximation)
   const p = clamp((21 + attackBonus - targetAC)/20, 0.05, 0.95);
   if(adv==='adv') return 1 - (1 - p)**2;
   if(adv==='dis') return p**2;
   return p;
 }
-function critChance(adv="normal"){ // 5% crit on a 20
+function critChance(adv="normal"){
   const p=0.05;
   if(adv==='adv') return 1-(1-p)**2;
   if(adv==='dis') return p**2;
@@ -72,7 +131,7 @@ function saveFailChance(dc, saveBonus, adv="normal"){
   let suc = baseSuc;
   if(adv==='adv') suc = 1 - (1 - baseSuc)**2;
   if(adv==='dis') suc = baseSuc**2;
-  return 1 - suc; // fail probability
+  return 1 - suc;
 }
 function concSuccessChancePerHit(damage, conBonus, adv="normal"){
   const dc = Math.max(10, Math.floor(damage/2));
@@ -559,6 +618,9 @@ function onPartyToggle(e){
 }
 function onMonsterForm(e){
   e.preventDefault();
+  // Attempt a last-second fill from published if the name matches and fields are empty
+  autofillFromPublished();
+
   const name = $('#m-name').value.trim() || 'Creature';
   const cr = $('#m-cr').value.trim() || '';
   const xp = parseInt($('#m-xp').value || (XP_BY_CR[cr]||0), 10);
@@ -586,6 +648,16 @@ function onRulesetToggle(){
 // ---------- Boot ----------
 function boot(){
   document.addEventListener('click', onTabClick);
+
+  // Hook adapter (if present)
+  enemiesSubscribe();
+  // Gentle auto-fill: when you leave the name field, try to fill CR/XP/AC/HP
+  document.getElementById('m-name')?.addEventListener('blur', autofillFromPublished);
+  // If CR changes and XP is empty, populate from table
+  document.getElementById('m-cr')?.addEventListener('change', () => {
+    const cr = $('#m-cr').value.trim();
+    if (cr && !$('#m-xp').value) $('#m-xp').value = XP_BY_CR[cr] || 0;
+  });
 
   // Party init
   loadParty();
