@@ -1,25 +1,24 @@
 @import url("./CSS/theme.css");
 
 :root{
-  /* === Brand tokens now map to central theme variables === */
-  --lime-green: var(--color-primary);         /* buttons/links/focus */
-  --midnight-blue: var(--color-surface-1);    /* app background */
-  --lime-600: var(--color-primary-600);       /* hover */
-  --lime-700: var(--color-primary-700);       /* active */
+  /* === Brand tokens (official names) === */
+  --lime-green: var(--color-primary);      /* Lime Green */
+  --midnight-blue: var(--color-surface-1);   /* Midnight Blue */
 
-  /* App text + borders (from theme) */
-  --text: var(--color-text);
-  --border: var(--color-border);
+  /* Tones */
+  --lime-600:var(--color-primary-600);
+  --lime-700:var(--color-primary-700);
+
+  /* App text + borders */
+  --text:var(--color-text);
+  --border:var(--color-border);
 
   /* === Legacy aliases (keep old code working) === */
   --midnight: var(--midnight-blue);
   --lime: var(--lime-green);
   --ink: var(--text);
   --bg: var(--midnight);
-
-  /* Panels inherit central card surface */
   --panel: var(--color-surface-2);
-
   --muted:#aab3c5;
   --accent: var(--lime-green);
 
@@ -43,7 +42,7 @@ html,body{ height:100% }
 html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
 body{
   margin:0; background:var(--bg); color:var(--ink);
-  font-family: var(--font-body, "Arvo", Georgia, serif);
+  font-family: "Arvo", Georgia, serif;
   font-size: var(--fs-base); line-height:1.5;
   overflow-wrap: anywhere;
 }
@@ -133,7 +132,7 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
   max-width:100%; white-space:normal; text-align:center; line-height:1.25;
 }
 .board-ctrl:hover{
-  background: var(--lime-600);
+  background:var(--lime-600);
   box-shadow:0 0 0 2px rgba(214,237,23,.25) inset;
 }
 
@@ -375,7 +374,7 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
 /* Logbook host view polish */
 #view-logbook .panel { border-radius: 12px; overflow: hidden; }
 #logbook-frame { background: var(--bg); display: block; }
-.tile-home-logbook h2 { font-family: var(--font-body, "Arvo", Georgia, serif); }
+.tile-home-logbook h2 { font-family: "Arvo", Georgia, serif; }
 
 /* Landing tile highlight for Character Manager (optional flair) */
 .tile-home-characters{
