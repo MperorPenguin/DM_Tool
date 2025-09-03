@@ -1,13 +1,12 @@
 // DocumentsTabletopPals/tools/enemies-adapter.js
-// Validating Publish–Subscribe adapter + BroadcastChannel + robust Admin URL auto-detect
+// Validating Publish–Subscribe adapter + BroadcastChannel + robust Admin URL auto-detect (supports data-admin-path)
 
 (() => {
   const ENEMIES_PUBLISH_KEY = 'tp_enemies_data_v1';
   const ENEMIES_PING_KEY    = 'tp_enemies_public_v1';
 
-  // ---------- Admin URL detection (works on GitHub Project Pages) ----------
-  // We resolve the Admin URL *relative to the adapter script's own URL*,
-  // so if your site is https://user.github.io/REPO/, this becomes /REPO/admin/enemy-builder/
+  // ---------- Admin URL detection ----------
+  // Resolve Admin URL relative to THIS script's URL; prefer explicit data-admin-path if provided.
   const SCRIPT =
     document.querySelector('#enemies-adapter') ||
     document.currentScript ||
@@ -15,25 +14,19 @@
 
   let ADMIN_URL;
   try {
-    // Absolute URL of this script (handles ../../ paths correctly)
     const scriptURL = new URL(SCRIPT?.getAttribute('src') || '', document.baseURI);
-    // If you explicitly pass data-admin-path, resolve it relative to the script URL
-    if (SCRIPT?.dataset?.adminPath) {
-      ADMIN_URL = new URL(SCRIPT.dataset.adminPath, scriptURL);
-    } else {
-      // Default: "../admin/enemy-builder/" relative to /REPO/tools/enemies-adapter.js -> /REPO/admin/enemy-builder/
-      ADMIN_URL = new URL('../admin/enemy-builder/', scriptURL);
-    }
+    ADMIN_URL = SCRIPT?.dataset?.adminPath
+      ? new URL(SCRIPT.dataset.adminPath, scriptURL)          // use forced path if given
+      : new URL('../admin/enemy-builder/', scriptURL);         // default: from /.../tools/ → /.../admin/enemy-builder/
   } catch {
-    // Fallback (shouldn't be needed): open a relative admin path from current page
-    ADMIN_URL = new URL('admin/enemy-builder/', window.location.href);
+    ADMIN_URL = new URL('admin/enemy-builder/', window.location.href); // last-resort fallback
   }
 
-  // BroadcastChannel (best-effort)
+  // ---------- BroadcastChannel (best-effort) ----------
   let bc = null;
   try { bc = new BroadcastChannel('tp_enemies'); } catch {}
 
-  // CR → XP (validation reference)
+  // ---------- CR → XP (validation reference) ----------
   const XP_BY_CR = {
     "0":10,"1/8":25,"1/4":50,"1/2":100,"1":200,"2":450,"3":700,"4":1100,"5":1800,"6":2300,"7":2900,"8":3900,"9":5000,"10":5900,
     "11":7200,"12":8400,"13":10000,"14":11500,"15":13000,"16":15000,"17":18000,"18":20000,"19":22000,"20":25000,
@@ -97,7 +90,7 @@
     emit();
   }
 
-  // storage + BroadcastChannel listeners
+  // Listen for updates
   window.addEventListener('storage', (e)=> {
     if(e.key===ENEMIES_PUBLISH_KEY || e.key===ENEMIES_PING_KEY) load();
   });
@@ -113,7 +106,7 @@
   function status(){ return { ...lastStatus }; }
   function openAdmin(){ window.open(ADMIN_URL.href, '_blank', 'noopener'); }
 
-  // init
+  // Init
   load();
 
   window.EnemiesAdapter = { get, reload, subscribe, subscribeStatus, status, openAdmin };

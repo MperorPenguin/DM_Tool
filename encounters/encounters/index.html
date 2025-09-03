@@ -263,8 +263,15 @@
     Buttons are Lime Green; surfaces Midnight Blue; font Arvo — per project tokens.
   </footer>
 
-<script src="../../tools/enemies-adapter.js" data-admin-path="/admin/enemy-builder/" defer></script>
+  <!-- Load the adapter FIRST, with a repo-relative admin path -->
+  <script
+    id="enemies-adapter"
+    src="../../tools/enemies-adapter.js"
+    data-admin-path="../../admin/enemy-builder/"
+    defer
+  ></script>
 
+  <!-- Then your app -->
   <script src="./app.js" type="module"></script>
 </body>
 </html>
