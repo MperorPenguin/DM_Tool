@@ -1,12 +1,18 @@
+@import url("../CSS/theme.css");
+
 :root{
-  /* DND brand */
-  --lime-green:#d6ed17; /* Lime Green */
-  --midnight-blue:#000e1b; /* Midnight Blue */
-  --lime-600:#c6de10; --lime-700:#a7c60e;
-  --text:#d7e6ff; --border:#0f2a44;
+  /* Colours now pulled from central theme */
+  --lime-green: var(--color-primary);         /* Primary (buttons/links/focus) */
+  --midnight-blue: var(--color-surface-1);    /* App background */
+  --lime-600: var(--color-primary-600);       /* Hover */
+  --lime-700: var(--color-primary-700);       /* Active */
+  --text: var(--color-text);                  /* Text */
+  --border: var(--color-border);              /* Borders */
 
-  --font:"Arvo", Georgia, serif;
+  /* Font (use central theme variable) */
+  --font: var(--font-body);
 
+  /* Existing sizing/spacing tokens unchanged */
   --fs-base:clamp(14px,2.2vw,16px);
   --fs-sm:clamp(12px,1.9vw,14px);
   --fs-btn:clamp(13px,2.4vw,16px);
@@ -55,7 +61,8 @@ h2{font-size:var(--fs-h2)} h3{font-size:var(--fs-h3)}
 .btn{padding:var(--pad-y) var(--pad-x); border-radius:12px; min-height:var(--btn-min-h); font-size:var(--fs-btn)}
 .btn.tiny{padding:6px 10px; min-height:clamp(32px,7.2vw,38px); font-size:clamp(12px,2.1vw,13.5px)}
 .btn-ghost{background:transparent; color:var(--text); border:1px solid var(--border)}
-.btn-ghost:hover{background:rgba(214,237,23,.10)}
+/* Use primary tint for hover so it follows the central theme colour */
+.btn-ghost:hover{background:color-mix(in srgb, var(--lime-green) 10%, transparent)}
 .btn-danger{background:#ff5252; color:#0b0b0b}
 .btn-danger:hover{background:#ff6d6d}
 

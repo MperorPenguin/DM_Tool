@@ -1,17 +1,20 @@
+@import url("../CSS/theme.css");
+
 /* DND Project — Root Theme */
 :root {
-  --lime-green: #d6ed17;      /* Lime Green */
-  --midnight-blue: #000e1b;   /* Midnight Blue */
-  --lime-600: #c6de10;
-  --lime-700: #a7c60e;
-  --text: #d7e6ff;
-  --border: #0f2a44;
+  /* map local tokens to central theme */
+  --lime-green: var(--color-primary);         /* Primary */
+  --midnight-blue: var(--color-surface-1);    /* App background */
+  --lime-600: var(--color-primary-600);       /* Hover */
+  --lime-700: var(--color-primary-700);       /* Active */
+  --text: var(--color-text);                  /* Text */
+  --border: var(--color-border);              /* Borders */
 }
 
 html, body {
   background: var(--midnight-blue);
   color: var(--text);
-  font-family: "Arvo", Georgia, serif;
+  font-family: var(--font-body, "Arvo", Georgia, serif);
   line-height: 1.5;
   font-size: 16px;
 }

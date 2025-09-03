@@ -1,15 +1,17 @@
+@import url("../../CSS/theme.css");
+
 :root{
-  /* Brand tokens per project */
-  --lime-green:#d6ed17;      /* Lime Green */
-  --midnight-blue:#000e1b;   /* Midnight Blue */
-  --lime-600:#c6de10;
-  --lime-700:#a7c60e;
-  --text:#d7e6ff;
-  --border:#0f2a44;
+  /* Brand tokens now inherit from the central theme */
+  --lime-green:      var(--color-primary);       /* Primary */
+  --midnight-blue:   var(--color-surface-1);     /* App background */
+  --lime-600:        var(--color-primary-600);   /* Hover */
+  --lime-700:        var(--color-primary-700);   /* Active */
+  --text:            var(--color-text);          /* Text */
+  --border:          var(--color-border);        /* Border */
 }
 
-/* Typography: Arvo by default; optional Aptos if <html class="use-aptos"> */
-html, body { font-family: "Arvo", Georgia, serif; }
+/* Typography: theme font; optional Aptos if <html class="use-aptos"> */
+html, body { font-family: var(--font-body, "Arvo", Georgia, serif); }
 .use-aptos html, .use-aptos body { font-family: "Aptos","Arvo", Georgia, serif; }
 
 /* Layout */
