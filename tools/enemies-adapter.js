@@ -6,8 +6,22 @@
   const ENEMIES_PING_KEY    = 'tp_enemies_public_v1';
 
   // Resolve admin path from <script data-admin-path>, else default:
-  const SCRIPT = document.currentScript || document.querySelector('script[src*="enemies-adapter.js"]');
-  const ADMIN_PATH = (SCRIPT && SCRIPT.dataset && SCRIPT.dataset.adminPath) || '/admin/enemy-builder/';
+// Try to get the <script> that loaded this file
+const SCRIPT =
+  document.querySelector('#enemies-adapter') ||
+  document.currentScript ||
+  document.querySelector('script[src*="enemies-adapter.js"]');
+
+// Compute the site root from the script's src so it works on GitHub Project Pages
+let ADMIN_PATH = '/admin/enemy-builder/'; // default root
+try {
+  const scriptURL = SCRIPT ? new URL(SCRIPT.getAttribute('src'), document.baseURI) : null;
+  // e.g. /<REPO>/tools/enemies-adapter.js  ->  /<REPO>
+  const baseRoot = scriptURL ? scriptURL.pathname.replace(/\/tools\/enemies-adapter\.js.*$/,'') : '';
+  const auto = baseRoot ? (baseRoot + '/admin/enemy-builder/') : null;
+  // Priority: explicit data-admin-path > auto-detected > default
+  ADMIN_PATH = (SCRIPT?.dataset?.adminPath) || auto || ADMIN_PATH;
+} catch {}
 
   // BroadcastChannel (best-effort)
   let bc = null;
