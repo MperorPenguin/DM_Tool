@@ -3,34 +3,32 @@
    Visuals only — colours, text, hovers. No layout/JS changes.
    =================================================================== */
 
-/* Load Poppins without editing HTML */
+/* Load Poppins (demo) without editing HTML */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
-/* Brand palette (from user) mapped to project tokens */
+/* Central design tokens — EXACTLY as in your table */
 :root{
-  /* Primary action colour family */
-  --lime-green: #84dd63;  /* sgbus-green — primary buttons/links/focus */
-  --lime-600:  #6baa75;   /* asparagus — hover */
-  --lime-700:  #4a7b57;   /* deeper — active */
+  /* Primary action colours */
+  --color-primary:     #84dd63;  /* Primary */
+  --color-primary-600: #6baa75;  /* Primary Hover */
+  --color-primary-700: #4a7b57;  /* Primary Active */
 
-  /* Base surfaces & text */
-  --midnight-blue: #121416;  /* app background */
-  --text:           #eaf2ec;  /* general text */
-  --border:         #30363d;  /* borders, separators */
+  /* Surfaces & text */
+  --color-surface-1:   #121416;  /* App Background */
+  --color-surface-2:   #1b2024;  /* Card / Panel Surface */
+  --color-border:      #30363d;  /* Border */
+  --color-text:        #eaf2ec;  /* Text */
+  --input-bg:          #0f1517;  /* Input Background */
 
-  /* Optional: panel surface override (used by some modules as --panel) */
-  /* If your local CSS defines --panel, you can set it here for a distinct card colour. */
-  --panel: #1b2024;
-
-  /* Demo font family */
-  --font-body: Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arimo, Helvetica, Arial, sans-serif;
+  /* Typography */
+  --font-body: Poppins, system-ui, -apple-system, "Segoe UI", Roboto, Arimo, Helvetica, Arial, sans-serif;
 }
 
-/* Highest-specificity font override (beats body in existing CSS without touching HTML) */
+/* High-specificity font override so we don't touch HTML */
 html body { font-family: var(--font-body) !important; }
 
-/* Accessibility helpers (kept minimal & non-invasive) */
+/* Accessible global focus ring using primary */
 :focus-visible {
-  outline: 2px solid var(--lime-green);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
