@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DND Project Export (Offline)</title>
+<link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --lime:#d6ed17; --midnight:#000e1b; --ink:#e9ecf1; --border:#233044; }
+  html,body{height:100%} body{margin:0;background:var(--midnight);color:var(--ink);font-family:"Arvo",Georgia,serif}
+  .wrap{max-width:900px;margin:0 auto;padding:16px}
+  .panel{background:#071423;border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+  h1{margin:0 0 12px} .muted{opacity:.8}
+  .btn{appearance:none;background:var(--lime);color:var(--midnight);border:1px solid transparent;border-radius:10px;
+       padding:10px 14px;cursor:pointer;font-weight:700}
+  .btn:hover{filter:brightness(0.95)}
+  .ghost{background:transparent;border:1px solid var(--lime);color:var(--ink)}
+  pre{white-space:pre-wrap;word-wrap:break-word;background:#02101d;border:1px solid var(--border);padding:12px;border-radius:8px;max-height:320px;overflow:auto}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  input[type="file"]{display:none}
+  .hint{font-size:.9em;opacity:.85}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <h1>Project Export (Offline)</h1>
+      <p class="muted">Pick your <strong>DocumentsTabletopPals</strong> folder. This will bundle all files (excluding common dev folders) into a ZIP.</p>
+      <div class="row">
+        <label for="dir" class="btn">Pick Project Folder</label>
+        <input id="dir" type="file" webkitdirectory directory multiple />
+        <button id="btn-export" class="btn ghost" disabled>Export ZIP</button>
+        <button id="btn-list" class="btn ghost" disabled>Show File List</button>
+        <button id="btn-copy" class="btn ghost" disabled>Copy File List</button>
+      </div>
+      <div class="hint">Excludes: <code>.git</code>, <code>node_modules</code>, <code>.map</code> files by default.</div>
+      <pre id="log" aria-live="polite"></pre>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <script>
+    const logEl = document.getElementById('log');
+    const log = (...a)=>{ logEl.textContent += a.join(' ') + '\\n'; };
+
+    const input = document.getElementById('dir');
+    const btnExport = document.getElementById('btn-export');
+    const btnList = document.getElementById('btn-list');
+    const btnCopy = document.getElementById('btn-copy');
+
+    let files = [];     // FileList → Array<File>
+    let rootName = 'DocumentsTabletopPals';
+
+    input.addEventListener('change', ()=>{
+      files = Array.from(input.files || []);
+      if(!files.length){ log('No files selected.'); return; }
+      // Try to detect root folder name from the first file's webkitRelativePath
+      const first = files[0];
+      if(first && first.webkitRelativePath){
+        const parts = first.webkitRelativePath.split('/');
+        if(parts.length > 1) rootName = parts[0];
+      }
+      btnExport.disabled = false;
+      btnList.disabled = false;
+      btnCopy.disabled = false;
+      logEl.textContent = '';
+      log('Selected files:', files.length);
+    });
+
+    const EXCLUDES = [
+      /^\.git(\/|\\|$)/i,
+      /^node_modules(\/|\\|$)/i
+    ];
+    const EXT_EXCLUDES = [ '.map' ];
+
+    function includeFile(path){
+      // path is like "DocumentsTabletopPals/sub/dir/file.ext"
+      const rel = path.replace(/^\/+/, '');
+      const afterRoot = rel.replace(new RegExp('^' + rootName.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&') + '\/'), '');
+      // exclude big dev dirs
+      if(EXCLUDES.some(rx => rx.test(afterRoot))) return false;
+      // exclude sourcemaps etc.
+      if(EXT_EXCLUDES.some(ext => afterRoot.toLowerCase().endsWith(ext))) return false;
+      return true;
+    }
+
+    function listPaths(){
+      return files.map(f => f.webkitRelativePath || f.name)
+                  .filter(Boolean)
+                  .filter(p => includeFile(p));
+    }
+
+    btnList.addEventListener('click', ()=>{
+      logEl.textContent = listPaths().join('\\n');
+    });
+
+    btnCopy.addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText(listPaths().join('\\n'));
+        log('Copied file list to clipboard.');
+      }catch(e){ log('Clipboard error:', e.message); }
+    });
+
+    btnExport.addEventListener('click', async ()=>{
+      if(!files.length){ log('Pick a folder first.'); return; }
+      logEl.textContent = '';
+      log('Packaging ZIP...');
+      const zip = new JSZip();
+      let ok=0, skip=0;
+
+      for(const f of files){
+        const p = f.webkitRelativePath || f.name;
+        if(!p){ continue; }
+        if(!includeFile(p)){ skip++; continue; }
+        const folderSafe = p.split('/').slice(0,-1).join('/');
+        const fileName = p.split('/').slice(-1)[0];
+        const data = await f.arrayBuffer();
+        zip.folder(folderSafe)?.file(fileName, data);
+        ok++;
+      }
+
+      const ts = new Date().toISOString().replace(/[:.]/g,'-');
+      const zipName = `${rootName || 'Project'}-ALL-${ts}.zip`;
+      const blob = await zip.generateAsync({ type:'blob' });
+      saveAs(blob, zipName);
+      log('Done. Files included:', ok, 'Skipped:', skip);
+      log('ZIP:', zipName);
+    });
+  </script>
+</body>
+</html>

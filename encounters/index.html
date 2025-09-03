@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Encounters</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{ --lime-green:#d6ed17; --midnight-blue:#000e1b; --text:#d7e6ff; --border:#0f2a44; }
+    html,body{
+      margin:0; background:var(--midnight-blue); color:var(--text);
+      font-family:"Arvo", Georgia, serif; display:grid; place-items:center; height:100svh
+    }
+    a{ color:#000; background:var(--lime-green); padding:.7rem 1rem; border-radius:.7rem; text-decoration:none; font-weight:700 }
+    a:hover{ background:#c6de10 }
+    a:active{ background:#a7c60e }
+    a:focus-visible{ outline:3px solid var(--lime-green); outline-offset:3px }
+    .wrap{ display:grid; gap:.75rem; place-items:center }
+    .muted{ opacity:.75 }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Encounters</h1>
+    <p class="muted">Open the Encounter Builder (Calculator).</p>
+    <p><a href="./encounters/">Open Encounter Builder</a></p>
+  </div>
+</body>
+</html>

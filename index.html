@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>DM Toolkit</title>
+
+  <!-- Arvo font -->
+  <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+  <!-- Optional: add class="use-aptos" to <html> to prefer Aptos if installed -->
+</head>
+<body>
+  <!-- Top bar -->
+  <div class="top">
+    <div class="inner">
+      <div class="logo">
+        <div class="mark"></div>
+        <strong>DM Toolkit</strong>
+      </div>
+      <div class="nav">
+        <button id="nav-home"      onclick="nav('home')">Home</button>
+        <button id="nav-world"     onclick="nav('world')">World Map</button>
+        <button id="nav-dice"      onclick="nav('dice')">Dice</button>
+        <button id="nav-notes"     onclick="nav('notes')">Notes</button>
+        <button id="nav-dm"        onclick="nav('dm')">DM</button>
+        <button id="nav-encounters" onclick="window.location.href='encounters/encounters/'">Encounter Builder</button>
+        <button id="nav-logbook"   onclick="nav('logbook')">Logbook</button>
+        <!-- Characters in the top nav -->
+        <button id="nav-characters" onclick="nav('characters')">Characters</button>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <!-- HOME -->
+    <section id="view-home">
+      <!-- Centered brand logo panel -->
+      <div class="panel hero-panel">
+        <img
+          id="brand-logo"
+          class="brand-logo"
+          src="assets/brand/logo.png"
+          alt="TabletopPals logo"
+        />
+      </div>
+
+      <div class="home-grid">
+        <div class="panel tile tile-home-world"      tabindex="0" onclick="nav('world')"><h2>World Map</h2></div>
+        <div class="panel tile tile-home-dice"       tabindex="0" onclick="nav('dice')"><h2>Dice</h2></div>
+        <div class="panel tile tile-home-dm"         tabindex="0" onclick="nav('dm')"><h2>DM</h2></div>
+        <div class="panel tile tile-home-encounters" tabindex="0" onclick="window.location.href='encounters/encounters/'"><h2>Encounter Builder</h2></div>
+        <div class="panel tile tile-home-notes"      tabindex="0" onclick="nav('notes')"><h2>Notes</h2></div>
+        <div class="panel tile tile-home-logbook"    tabindex="0" onclick="nav('logbook')"><h2>Logbook</h2></div>
+        <!-- Characters tile on landing page -->
+        <div class="panel tile tile-home-characters" tabindex="0" onclick="nav('characters')"><h2>Character Manager</h2></div>
+      </div>
+    </section>
+
+    <!-- CHARACTER MANAGER (iframe, same origin so localStorage sync works) -->
+    <section id="view-characters" class="hidden">
+      <div class="panel" style="padding:0">
+        <div class="section-head" style="padding:12px 16px">
+          <h2>Character Manager</h2>
+          <div class="small">Create, edit, print, and add members to the Party.</div>
+        </div>
+
+        <iframe
+          id="characters-frame"
+          title="Character Manager"
+          src="./dnd-characters-modules/index.html#characters/gallery"
+          style="width:100%; height:80vh; border:0; display:block;"
+        ></iframe>
+      </div>
+    </section>
+
+    <!-- LOGBOOK -->
+    <section id="view-logbook" class="hidden">
+      <div class="panel" style="padding:0">
+        <div class="section-head" style="padding:12px 16px">
+          <h2>Logbook</h2>
+          <div class="small">Standalone logbook mounted inside the toolkit.</div>
+        </div>
+        <iframe
+          id="logbook-frame"
+          title="DM Logbook"
+          src="logbook/index.html"
+          style="width:100%; height:80vh; border:0; display:block;"
+        ></iframe>
+      </div>
+    </section>
+
+    <!-- WORLD MAP -->
+    <section id="view-world" class="hidden">
+      <div class="panel">
+        <div class="section-head"><h2>World Map</h2></div>
+        <div class="control-row">
+          <button class="board-ctrl" onclick="toggleWorldFullscreen()">Fullscreen</button>
+          <button class="board-ctrl" onclick="openWorldViewer()">Cast / Pop-out</button>
+        </div>
+        <div id="world" class="world-stage" style="margin-top:10px"></div>
+      </div>
+
+      <div class="panel" style="margin-top:10px">
+        <div class="section-head"><h3>Select Map</h3></div>
+        <div id="world-map-list" class="map-list"></div>
+      </div>
+    </section>
+
+    <!-- DICE -->
+    <section id="view-dice" class="hidden">
+      <div class="panel">
+        <div class="section-head"><h2>Dice</h2></div>
+        <div id="dice-buttons" class="dice-row"></div>
+
+        <div style="margin-top:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <div id="dice-selection" class="small"></div>
+          <button class="btn btn-xl" onclick="rollAll()">Roll</button>
+          <button class="btn btn-xl" onclick="clearDice()">Clear</button>
+        </div>
+
+        <div id="dice-output" class="roll-output" style="margin-top:8px">
+          <div class="dice-hero" style="color:#d6ed17">
+            <img src="assets/icons/d20-lime.svg" alt="d20" />
+          </div>
+
+          <div class="roll-card">
+            <div class="roll-total">—</div>
+            <div class="roll-breakdown">Add dice to roll…</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOTES -->
+    <section id="view-notes" class="hidden">
+      <div class="panel">
+        <div class="section-head"><h2>Notes</h2></div>
+        <textarea id="app-notes" rows="14" style="width:100%"></textarea>
+      </div>
+    </section>
+
+    <!-- DM (full page) -->
+    <section id="view-dm" class="hidden">
+      <div class="dm-page panel">
+        <div class="dm-head">
+          <h3>DM</h3>
+          <div class="dm-head-actions">
+            <button class="btn tiny" onclick="nav('home')">Back to Home</button>
+          </div>
+        </div>
+        <div id="dm-tabs" class="dm-tabs"></div>
+        <div id="dm-body"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Fallbacks for local file paths -->
+  <script>
+    (function(){
+      var img = document.getElementById('brand-logo');
+      if(!img) return;
+      var candidates = [
+        'assets/brand/logo.png',
+        'DocumentsTabletopPals/assets/brand/logo.png',
+        './DocumentsTabletopPals/assets/brand/logo.png',
+        '../DocumentsTabletopPals/assets/brand/logo.png'
+      ];
+      var i = 0;
+      img.onerror = function(){
+        i++;
+        if(i < candidates.length){ img.src = candidates[i]; }
+        else { img.onerror = null; }
+      };
+    })();
+  </script>
+
+  <!-- Rescue nav if app.js fails to load -->
+  <script>
+    (function(){
+      function navRescue(route){
+        var views = ['home','world','dice','notes','dm','logbook','characters'];
+        for (var i=0;i<views.length;i++){
+          var v = views[i];
+          var main = document.getElementById('view-'+v);
+          var btn  = document.getElementById('nav-'+v);
+          if(!main) continue;
+          if(v===route){
+            main.classList.remove('hidden');
+            if(btn) btn.classList.add('active');
+          } else {
+            main.classList.add('hidden');
+            if(btn) btn.classList.remove('active');
+          }
+        }
+      }
+      window.nav = window.nav || navRescue;
+    })();
+  </script>
+
+  <!-- Main app logic -->
+  <script src="app.js"></script>
+  <script>
+    if (window.__pendingNav && typeof window.nav === 'function') {
+      window.nav(window.__pendingNav);
+      window.__pendingNav = null;
+    } else {
+      nav('home');
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+{
+  "name": "DocumentsTabletopPals",
+  "version": "v1.0.0",
+  "files": [
+    ".nojekyll",
+    "index.html",
+    "app.js",
+    "style.css",
+    "map.svg",
+
+    "assets/brand/logo.png",
+    "assets/icons/d20-lime.svg",
+
+    "assets/class_icons/Barbarian.svg",
+    "assets/class_icons/Bard.svg",
+    "assets/class_icons/Cleric.svg",
+    "assets/class_icons/Druid.svg",
+    "assets/class_icons/Fighter.svg",
+    "assets/class_icons/Monk.svg",
+    "assets/class_icons/Paladin.svg",
+    "assets/class_icons/Ranger.svg",
+    "assets/class_icons/Rogue.svg",
+    "assets/class_icons/Sorcerer.svg",
+    "assets/class_icons/Warlock.svg",
+    "assets/class_icons/Wizard.svg",
+
+    "logbook/index.html",
+
+    "dnd-characters-modules/index.html",
+    "dnd-characters-modules/characters.css",
+    "dnd-characters-modules/main.mod.js",
+    "dnd-characters-modules/modules/creator.js",
+    "dnd-characters-modules/modules/gallery.js",
+    "dnd-characters-modules/modules/router.js",
+    "dnd-characters-modules/modules/storage.js",
+    "dnd-characters-modules/modules/party-bridge.js",
+
+    "MapsKit/assets/maps/index.json",
+    "MapsKit/assets/maps/index.js",
+
+    "dev/manifest.json",
+    "dev/export.html"
+  ],
+
+  /* Optional: if present, the exporter will read this JSON file and
+     automatically add each local map image referenced in its "src" fields. */
+  "mapsIndexJson": "MapsKit/assets/maps/index.json"
+}

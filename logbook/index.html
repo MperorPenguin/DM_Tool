@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>DM Logbook — Visual Demo</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="inner">
+      <div class="logo">
+        <div class="mark"></div>
+        <strong>DM Logbook (Demo)</strong>
+      </div>
+      <div class="nav">
+        <button class="active" aria-current="page">Logbook</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <!-- Left contents panel -->
+    <aside class="log-sidebar">
+      <div class="sidebar-head">
+        <h3>Contents</h3>
+        <div class="sidebar-head-actions">
+          <button class="btn tiny btn-ghost" id="btn-select-toggle">Select</button>
+          <button class="btn tiny" id="btn-new">+ New Log</button>
+        </div>
+      </div>
+
+      <div id="sidebar-list" class="sidebar-list">
+        <div class="small">No sessions yet.</div>
+      </div>
+
+      <!-- Bulk actions row (appears only in select mode) -->
+      <div id="sidebar-bulk" class="sidebar-bulk hidden">
+        <div class="bulk-count small">0 selected</div>
+        <button class="btn tiny btn-danger" id="btn-delete-selected">Delete Selected</button>
+      </div>
+    </aside>
+
+    <!-- Editor area -->
+    <section class="editor-wrap">
+      <div id="editor" class="panel editor">
+        <div class="section-head"><h2>Session</h2></div>
+
+        <div class="log-meta" id="editor-meta"></div>
+
+        <div class="log-title-row">
+          <input id="title" class="log-title" type="text" placeholder="Untitled session" />
+          <button class="btn tiny" id="btn-submit-title">Submit Title</button>
+          <button class="btn tiny btn-ghost hidden" id="btn-edit-title">Edit Title</button>
+        </div>
+        <div class="helper" id="title-helper">
+          Name the session and press <strong>Submit Title</strong> to start taking notes.
+        </div>
+
+        <!-- Notes: hidden until first submit on brand-new log -->
+        <div id="notes-wrap" class="notes-wrap hidden">
+          <div class="notes-card">
+            <textarea id="notes" class="log-body" rows="10" placeholder="Write session notes here…"></textarea>
+            <div class="log-actions">
+              <button class="btn tiny" id="btn-save">Save</button>
+              <button class="btn tiny btn-ghost" id="btn-delete-current">Delete</button>
+              <button class="btn tiny btn-ghost" id="btn-export">Export All</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save FX host -->
+        <div id="fx-layer" class="fx-layer" aria-hidden="true"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Confirm modal host -->
+  <div id="confirm-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="modal-card">
+      <h3 id="confirm-title">Delete logs?</h3>
+      <div class="modal-body">
+        <p>Are you sure you want to delete the following log(s)?</p>
+        <ul id="confirm-list"></ul>
+      </div>
+      <div class="modal-actions">
+        <button class="btn tiny btn-danger" id="confirm-yes">Delete</button>
+        <button class="btn tiny btn-ghost" id="confirm-no">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

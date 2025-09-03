@@ -1,0 +1,4 @@
+<!-- Add this tile/button in your landing grid -->
+<a class="tile" href="encounters/" style="text-decoration:none;">
+  <button class="btn" type="button">Encounter Builder</button>
+</a>

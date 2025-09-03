@@ -1,0 +1,23 @@
+{
+  "players": [
+    {"id":"p1","name":"Aria","cls":"Rogue","level":1,"ac":15,"hp":{"cur":10,"max":10},"token":{"x":2,"y":3},"avatar":"assets/class_icons/Rogue.svg","tags":{"armor":"light","modes":["walk"],"wants":["stealth","ranged"]}},
+    {"id":"p2","name":"Bronn","cls":"Fighter","level":1,"ac":17,"hp":{"cur":13,"max":13},"token":{"x":4,"y":4},"avatar":"assets/class_icons/Fighter.svg","tags":{"armor":"heavy","modes":["walk"],"wants":["melee"]}},
+    {"id":"p3","name":"Mira","cls":"Cleric","level":1,"ac":16,"hp":{"cur":11,"max":11},"token":{"x":6,"y":3},"avatar":"assets/class_icons/Cleric.svg","tags":{"armor":"medium","modes":["walk"],"wants":["melee"]}},
+    {"id":"p4","name":"Kael","cls":"Ranger","level":1,"ac":14,"hp":{"cur":11,"max":11},"token":{"x":2,"y":5},"avatar":"assets/class_icons/Ranger.svg","tags":{"armor":"medium","modes":["walk"],"wants":["ranged","stealth"]}},
+    {"id":"p5","name":"Lysa","cls":"Wizard","level":1,"ac":12,"hp":{"cur":8,"max":8},"token":{"x":4,"y":6},"avatar":"assets/class_icons/Wizard.svg","tags":{"armor":"none","modes":["walk"],"wants":["ranged"]}},
+    {"id":"p6","name":"Dorn","cls":"Barbarian","level":1,"ac":14,"hp":{"cur":15,"max":15},"token":{"x":6,"y":6},"avatar":"assets/class_icons/Barbarian.svg","tags":{"armor":"medium","modes":["walk"],"wants":["melee"]}}
+  ],
+  "npcs": [
+    {"id":"n1","name":"Elder Bran","role":"Quest Giver","hp":{"cur":8,"max":8},"token":{"x":8,"y":6}},
+    {"id":"n2","name":"Innkeeper Tilda","role":"Innkeeper","hp":{"cur":7,"max":7},"token":{"x":9,"y":5}},
+    {"id":"n3","name":"Guard Jor","role":"Town Guard","hp":{"cur":11,"max":11},"token":{"x":11,"y":6}}
+  ],
+  "enemies": [
+    {"id":"e1","name":"Skeleton A","type":"undead","ac":13,"hp":{"cur":13,"max":13},"token":{"x":14,"y":6},"avatar":"assets/class_icons/Wizard.svg","tags":{"armor":"none","modes":["walk"],"wants":["ranged"]}},
+    {"id":"e2","name":"Goblin Scout","type":"goblinoid","ac":15,"hp":{"cur":7,"max":7},"token":{"x":16,"y":7},"avatar":"assets/class_icons/Rogue.svg","tags":{"armor":"light","modes":["walk"],"wants":["stealth","ranged"]}},
+    {"id":"e3","name":"Orc Warrior","type":"orc","ac":13,"hp":{"cur":15,"max":15},"token":{"x":18,"y":7},"avatar":"assets/class_icons/Fighter.svg","tags":{"armor":"medium","modes":["walk"],"wants":["melee"]}},
+    {"id":"e4","name":"Bandit","type":"humanoid","ac":12,"hp":{"cur":11,"max":11},"token":{"x":15,"y":9},"avatar":"assets/class_icons/Rogue.svg","tags":{"armor":"light","modes":["walk"],"wants":["melee","stealth"]}},
+    {"id":"e5","name":"Wolf","type":"beast","ac":13,"hp":{"cur":11,"max":11},"token":{"x":12,"y":8},"avatar":"assets/class_icons/Ranger.svg","tags":{"armor":"none","modes":["walk"],"wants":["stealth"]}},
+    {"id":"e6","name":"Zombie","type":"undead","ac":8,"hp":{"cur":22,"max":22},"token":{"x":17,"y":5},"avatar":"assets/class_icons/Warlock.svg","tags":{"armor":"none","modes":["walk"],"wants":["melee"]}}
+  ]
+}

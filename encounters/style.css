@@ -1,0 +1,62 @@
+/* DND Project — Root Theme */
+:root {
+  --lime-green: #d6ed17;      /* Lime Green */
+  --midnight-blue: #000e1b;   /* Midnight Blue */
+  --lime-600: #c6de10;
+  --lime-700: #a7c60e;
+  --text: #d7e6ff;
+  --border: #0f2a44;
+}
+
+html, body {
+  background: var(--midnight-blue);
+  color: var(--text);
+  font-family: "Arvo", Georgia, serif;
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+.wrap { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+.bar { display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; }
+.title h1 { margin: 0; }
+.sub { opacity:.85; }
+
+/* Buttons: always Lime Green */
+.btn, button {
+  background: var(--lime-green);
+  color: var(--midnight-blue);
+  border: 1px solid transparent;
+  padding: .65rem .95rem;
+  border-radius: .7rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn:hover, button:hover { background: var(--lime-600); }
+.btn:active, button:active { background: var(--lime-700); transform: translateY(1px); }
+.btn:focus-visible, button:focus-visible { outline: 3px solid var(--lime-green); outline-offset: 3px; }
+.btn:disabled, button:disabled { opacity:.5; cursor:not-allowed; }
+.btn.ghost { background: transparent; border: 1px solid var(--lime-green); color: var(--text); }
+.btn.ghost:hover { background: rgba(214,237,23,.12); }
+
+/* Tiles */
+.grid.tiles { display:grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0,1fr)); }
+.tile {
+  display:block; text-decoration:none; color: inherit;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.03);
+  border-radius: 1rem;
+  transition: transform .08s ease, box-shadow .1s ease, border-color .1s ease;
+}
+.tile:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.3); border-color: var(--lime-green); }
+.tile.disabled { opacity: .6; pointer-events: none; }
+.tile .tile-body { padding: 1rem; display:flex; flex-direction:column; gap:.5rem; }
+.tile h2 { margin:.25rem 0; }
+.tiny { font-size: .9rem; }
+.muted { opacity: .75; }
+code { background: rgba(255,255,255,.06); padding:.1rem .3rem; border-radius:.25rem; }
+
+.foot { text-align:center; opacity:.75; margin-top: 1rem; }
+
+@media (max-width: 960px){
+  .grid.tiles { grid-template-columns: 1fr; }
+}
