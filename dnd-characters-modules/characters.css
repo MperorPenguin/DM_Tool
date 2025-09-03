@@ -194,3 +194,46 @@ label.check{ display:flex; align-items:center; gap:8px; padding:6px 4px; }
   .print-sheet{ break-inside:avoid; page-break-inside:avoid; }
   .cc-top, .cc-footer { display:none !important; }
 }
+/* ===== Species selection clarity (CSS-only) ===== */
+/* Make species options ghost by default, and the chosen one bold/obvious */
+.pillwrap .pill[data-species]{
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 12px;
+  min-height: 36px;
+  font-weight: 700;
+  transition: border-color .15s ease, background .15s ease, transform .06s ease;
+}
+.pillwrap .pill[data-species]:hover{
+  border-color: var(--lime-green);
+}
+.pillwrap .pill[data-species]:focus-visible{
+  outline: 2px solid var(--lime-green);
+  outline-offset: 2px;
+}
+
+/* The active species becomes a strong, filled chip with a checkmark */
+.pillwrap .pill[data-species].active{
+  background: var(--lime-green);
+  color: #000; /* black text on green for AA+ */
+  border-color: transparent;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--lime-green) 28%, transparent) inset;
+}
+
+/* Checkmark + subtle "Selected" tag (pure CSS, no JS) */
+.pillwrap .pill[data-species].active::before{
+  content: "✓";
+  font-weight: 900;
+  margin-right: .5rem;
+  display:inline-block;
+  transform: translateY(-1px);
+}
+.pillwrap .pill[data-species].active::after{
+  content: " Selected";
+  font-size: 11px;
+  font-weight: 800;
+  opacity: .8;
+  margin-left: .35rem;
+}

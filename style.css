@@ -426,3 +426,21 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
   border: 1px solid var(--border);
 }
 .tile-home-encounters:hover { box-shadow: 0 0 0 2px rgba(214,237,23,.25) inset; }
+
+/* === Fix: remove the green hue on Encounter + Character tiles === */
+.tile-home-encounters,
+.tile-home-characters {
+  background: var(--panel) !important;   /* match normal tiles/panels */
+  background-image: none !important;     /* kill the gradient */
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+/* keep the same hover as the other tiles */
+.tile-home-encounters:hover,
+.tile-home-characters:hover {
+  background: rgba(255,255,255,.03) !important;
+  border-color: var(--lime-green) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+
