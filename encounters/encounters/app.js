@@ -1,8 +1,4 @@
-/* Encounter Builder — Encounters (with Enemy Admin integration)
-   - Auto-sync with Enemy Admin via BroadcastChannel + localStorage
-   - Status toasts (success/errors)
-   - Optional name-based autofill for monster form
-*/
+/* Encounter Builder — Encounters (with Enemy Admin integration + catalog dropdown) */
 
 "use strict";
 
@@ -18,7 +14,7 @@ const THRESHOLDS_2014 = {
   13:[1100,2200,3400,5100], 14:[1250,2500,3800,5700], 15:[1400,2800,4300,6400], 16:[1600,3200,4800,7200],
   17:[2000,3900,5900,8800], 18:[2100,4200,6300,9500], 19:[2400,4900,7300,10900], 20:[2800,5700,8500,12700]
 };
-const THRESHOLDS_2024 = THRESHOLDS_2014; // tweak if you adopt new table
+const THRESHOLDS_2024 = THRESHOLDS_2014;
 const XP_BY_CR = {
   "0":10,"1/8":25,"1/4":50,"1/2":100, 1:200,2:450,3:700,4:1100,5:1800,6:2300,7:2900,8:3900,9:5000,10:5900,
   11:7200,12:8400,13:10000,14:11500,15:13000,16:15000,17:18000,18:20000,19:22000,20:25000,21:33000,22:41000,
@@ -81,28 +77,52 @@ function showToast(msg, type='info', details){
   setTimeout(() => el.remove(), type === 'error' ? 8000 : 4000);
 }
 
-// ---------- Published enemies wiring (auto-sync + admin button + autofill) ----------
+// ---------- Published enemies wiring (auto-sync + dropdown + autofill) ----------
 let PUBLISHED = [];
+
+function renderCatalog(){
+  const sel = document.getElementById('m-catalog');
+  if(!sel) return;
+  const prev = sel.value;
+  if(!Array.isArray(PUBLISHED) || !PUBLISHED.length){
+    sel.innerHTML = `<option value="">— No published enemies —</option>`;
+    sel.disabled = true; return;
+  }
+  const opts = ['<option value="">— Select published enemy —</option>']
+    .concat(PUBLISHED.map(e => {
+      const text = `${e.name} (CR ${e.cr} · AC ${e.ac ?? '?'} · HP ${e.hp ?? '?'})`;
+      return `<option value="${e.id}">${text}</option>`;
+    }));
+  sel.innerHTML = opts.join('');
+  sel.disabled = false;
+  // Preserve selection if still valid
+  if (prev && PUBLISHED.some(e=>e.id===prev)) sel.value = prev;
+}
 
 function enemiesSubscribe(){
   if (!window.EnemiesAdapter) return;
-  window.EnemiesAdapter.subscribe(list => { PUBLISHED = Array.isArray(list)? list : []; });
-  // Also surface validation status as toasts if adapter supports it
+  window.EnemiesAdapter.subscribe(list => {
+    PUBLISHED = Array.isArray(list)? list : [];
+    renderCatalog();
+  });
   if (window.EnemiesAdapter.subscribeStatus){
     window.EnemiesAdapter.subscribeStatus((st) => {
       if (st.ok){
         showToast(`Enemies loaded: ${st.count} available.`, 'success');
+        renderCatalog();
         if (st.warnings && st.warnings.length){
           showToast(`Loaded with ${st.warnings.length} warning(s).`, 'info', st.warnings.slice(0,5));
         }
       } else {
         const reasons = (st.errors && st.errors.length) ? st.errors.slice(0,5) : ['Unknown validation error'];
         showToast(`Enemies data invalid — ${st.errors ? st.errors.length : '?'} issue(s).`, 'error', reasons);
+        renderCatalog();
       }
     });
   }
 }
 
+function findPublishedById(id){ return PUBLISHED.find(e => e.id === id) || null; }
 function findPublishedByNameLike(q){
   if(!q) return null;
   const s = String(q).trim().toLowerCase();
@@ -113,37 +133,23 @@ function findPublishedByNameLike(q){
       || PUBLISHED.find(e => (e.name||'').toLowerCase().includes(s))
       || null;
 }
+
 function autofillFromPublished(){
   const nm = document.getElementById('m-name'); if(!nm) return;
   const row = findPublishedByNameLike(nm.value); if(!row) return;
-  const setIfEmpty = (id,val)=>{ const el=document.getElementById(id); if(el && !el.value) el.value = String(val ?? ''); };
-  setIfEmpty('m-cr', row.cr || '');
-  const xpEl = document.getElementById('m-xp');
-  if (row.cr && xpEl && !xpEl.value) xpEl.value = (row.xp ?? '');
-  setIfEmpty('m-ac', row.ac);
-  setIfEmpty('m-hp', row.hp);
+  setFromCatalogRow(row);
 }
 
-function injectEnemyAdminButton(){
-  if (!window.EnemiesAdapter) return;
-  if (document.getElementById('btn-enemy-admin')) return;
-  const btn = document.createElement('button');
-  btn.id = 'btn-enemy-admin';
-  btn.className = 'btn ghost';
-  btn.type = 'button';
-  btn.textContent = 'Enemy Admin';
-  btn.style.marginLeft = '.5rem';
-  btn.addEventListener('click', () => window.EnemiesAdapter.openAdmin());
-
-  const spots = ['.site-head .actions','#encHeader .actions','#groupsHeader .actions','header .actions'];
-  for(const sel of spots){
-    const host = document.querySelector(sel);
-    if(host){ host.appendChild(btn); return; }
-  }
-  // fallback (floating)
-  const floater = btn.cloneNode(true);
-  floater.style.position = 'fixed'; floater.style.right = '1rem'; floater.style.bottom = '1rem'; floater.style.zIndex = '9999';
-  document.body.appendChild(floater);
+function setFromCatalogRow(row){
+  const set = (id,val,force=false)=>{ const el=document.getElementById(id); if(!el) return; if(force || !el.value) el.value = (val ?? ''); };
+  set('m-name', row.name, true);
+  set('m-cr', row.cr, true);
+  // XP: prefer published xp, else derive
+  const xp = (row.xp != null) ? row.xp : XP_BY_CR[row.cr] || '';
+  set('m-xp', xp, true);
+  set('m-ac', row.ac);
+  set('m-hp', row.hp);
+  // we don't have attacks/tohit/dice in the published payload; leave as-is for DM to fill
 }
 
 // ---------- Core math ----------
@@ -412,43 +418,15 @@ function onTgtEntityChange(){
 }
 function onSvTargetChange(){}
 
-// ---------- Demo ----------
-function loadSampleParty(){
-  STATE.party = [
-    { id:"sample1", name:"Kael",   level:3, ac:16, hp:28, hpMax:31 },
-    { id:"sample2", name:"Nyra",   level:3, ac:14, hp:20, hpMax:24 },
-    { id:"sample3", name:"Borin",  level:3, ac:18, hp:32, hpMax:35 },
-    { id:"sample4", name:"Elowen", level:3, ac:13, hp:18, hpMax:20 }
-  ];
-  STATE.partySel = STATE.party.map(p=>p.id);
-  renderPartyBox(); renderDiff();
-}
-function loadDemoEncounter(){
-  STATE.groups = [{ id: uid('g_'), name:"Goblin", cr:"1/4", xp: XP_BY_CR["1/4"], ac:15, hp:7, attacks:1, tohit:+4, dice:"1d6+2", count:4 }];
-  saveBuilder(); renderGroups(); renderDiff();
-}
-
-// ---------- Diagnostics ----------
-function approx(a,b,tol=1e-6){ return Math.abs(a-b) <= tol; }
-function diag(title, ok, exp, got){ return `<div class="row"><div><strong>${ok?"✅":"❌"} ${title}</strong></div><small>expected: ${exp} • got: ${got}</small></div>`; }
-function runDiagnostics(){
-  const out = [];
-  const p1 = hitChance(+7,15,'normal'); out.push(diag("hitChance +7 vs AC15", approx(p1,0.65), "0.65", p1.toFixed(5)));
-  const pa = hitChance(+7,15,'adv');    out.push(diag("hitChance ADV",         approx(pa,0.8775), "0.8775", pa.toFixed(5)));
-  const pd = hitChance(+7,15,'dis');    out.push(diag("hitChance DIS",         approx(pd,0.4225), "0.4225", pd.toFixed(5)));
-  const ca = critChance('adv');         out.push(diag("critChance ADV",        approx(ca,0.0975), "0.0975", ca.toFixed(5)));
-  const cd = critChance('dis');         out.push(diag("critChance DIS",        approx(cd,0.0025), "0.0025", cd.toFixed(5)));
-  const sf = saveFailChance(15,+2,'normal'); out.push(diag("saveFailChance DC15 +2", approx(sf,0.6), "0.6", sf.toFixed(5)));
-  const c1 = concSuccessChancePerHit(12,+4,'normal'); out.push(diag("concentration keep/one hit", approx(c1,0.75), "0.75", c1.toFixed(5)));
-  const c2 = Math.pow(c1,2);            out.push(diag("concentration keep after 2 hits", approx(c2,0.5625), "0.5625", c2.toFixed(5)));
-  const levels=[3,3,3,3]; const t = thresholds(levels,'2014'); const base=200, mult=2, adj=400;
-  const band = (adj<=t.easy)?"Easy":(adj<=t.med)?"Medium":(adj<=t.hard)?"Hard":"Deadly";
-  out.push(diag("thresholds L3x4 easy", t.easy===300, "300", t.easy));
-  out.push(diag("base xp goblins x4",   base===200,   "200", base));
-  out.push(diag("multiplier 4 monsters", approx(mult,2), "2", mult));
-  out.push(diag("adjusted xp",          adj===400,    "400", adj));
-  out.push(diag("band",                 band==="Medium", "Medium", band));
-  $('#diagOut').innerHTML = out.join("");
+// ---------- NEW: Catalog selection handler ----------
+function onCatalogChange(){
+  const sel = document.getElementById('m-catalog');
+  const id = sel?.value;
+  if(!id) return;
+  const row = findPublishedById(id);
+  if(!row) return;
+  setFromCatalogRow(row);
+  showToast(`Loaded ${row.name} from Admin.`, 'success');
 }
 
 // ---------- Tabs & wiring ----------
@@ -467,7 +445,7 @@ function onPartyToggle(e){
 }
 function onMonsterForm(e){
   e.preventDefault();
-  // Try to auto-fill if user typed a known enemy but didn’t blur
+  // Try to auto-fill if user typed a known enemy name
   autofillFromPublished();
 
   const name = $('#m-name').value.trim() || 'Creature';
@@ -481,6 +459,8 @@ function onMonsterForm(e){
   const count = parseInt($('#m-count').value || '1', 10);
   addGroup({name,cr,xp,ac,hp,attacks,tohit,dice,count});
   e.target.reset();
+  // Reset catalog select
+  const sel = document.getElementById('m-catalog'); if(sel) { sel.value = ''; }
 }
 function onGroupsList(e){
   const id = e.target.getAttribute('data-id'), act = e.target.getAttribute('data-act'); if(!act) return;
@@ -489,6 +469,25 @@ function onGroupsList(e){
 }
 function onRulesetToggle(){ STATE.ruleset = $('#ruleset2024').checked ? '2024' : '2014'; saveBuilder(); renderDiff(); }
 
+// ---------- Inject Enemy Admin button (optional; adapter also does this) ----------
+function injectEnemyAdminButton(){
+  if (!window.EnemiesAdapter) return;
+  if (document.getElementById('btn-enemy-admin')) return;
+  const btn = document.createElement('button');
+  btn.id = 'btn-enemy-admin';
+  btn.className = 'btn ghost';
+  btn.type = 'button';
+  btn.textContent = 'Enemy Admin';
+  btn.style.marginLeft = '.5rem';
+  btn.addEventListener('click', () => window.EnemiesAdapter.openAdmin());
+
+  const host = document.querySelector('header .actions');
+  if(host){ host.appendChild(btn); return; }
+  const floater = btn.cloneNode(true);
+  floater.style.position = 'fixed'; floater.style.right = '1rem'; floater.style.bottom = '1rem'; floater.style.zIndex = '9999';
+  document.body.appendChild(floater);
+}
+
 // ---------- Boot ----------
 function boot(){
   document.addEventListener('click', onTabClick);
@@ -496,6 +495,7 @@ function boot(){
   // Adapter & Admin integration
   enemiesSubscribe();
   document.getElementById('m-name')?.addEventListener('blur', autofillFromPublished);
+  document.getElementById('m-catalog')?.addEventListener('change', onCatalogChange);
   injectEnemyAdminButton();
 
   // Party
