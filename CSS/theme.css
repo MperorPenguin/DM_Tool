@@ -32,3 +32,39 @@ html body { font-family: var(--font-body) !important; }
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/* ---- Global control visuals (safe to share) ---- */
+:root{
+  --control-height: 2.75rem;
+  --control-radius: 12px;
+  --control-pad-x: .9rem;
+  --control-pad-y: .55rem;
+  color-scheme: dark; /* hint browsers for native popups */
+}
+
+/* Inputs (visuals only; no layout) */
+input, select, textarea {
+  background: var(--input-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--control-radius);
+  height: var(--control-height);
+  padding: var(--control-pad-y) var(--control-pad-x);
+  box-shadow: none;
+}
+
+/* Select arrow + dropdown palette (visual) */
+select {
+  padding-right: 2.25rem;
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .6rem center;
+  background-size: 1rem;
+}
+option, optgroup { background: var(--color-surface-2); color: var(--color-text); }
+
+input:hover, select:hover, textarea:hover { border-color: var(--color-primary-600); }
+input:active, select:active, textarea:active { border-color: var(--color-primary-700); }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
