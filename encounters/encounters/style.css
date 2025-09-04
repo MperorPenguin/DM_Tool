@@ -192,4 +192,33 @@ select {
   select { border-color: ButtonText; }
   select:focus-visible { outline-color: Highlight; }
 }
+/* === Fix header action buttons (Home / Enemy Admin) === */
+
+/* Layout the two buttons cleanly in a row */
+header .bar .actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+/* Normalize anchors that are used as buttons */
+a.btn {
+  text-decoration: none;         /* remove underline */
+  display: inline-flex;          /* match button box model */
+  align-items: center;
+}
+
+/* Keep ghost buttons green across anchor states */
+.btn.ghost,
+a.btn.ghost:visited,
+a.btn.ghost:hover,
+a.btn.ghost:active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Nudge spacing so inline styles don't cause stacking */
+header .bar .actions .btn { margin: 0; }
+#btn-enemy-admin { margin-left: 0 !important; }   /* overrides inline margin-left */
 
