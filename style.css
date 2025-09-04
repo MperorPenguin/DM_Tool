@@ -1,28 +1,23 @@
-@import url("./CSS/theme.css");
+@import url("./CSS/theme.css"); /* <-- must be line 1 */
+
+/* -----------------------------------------------------------
+   ROOT STYLES (Home / DM / shared)
+   Visuals (colors, fonts, controls) come from theme.css.
+   This file only handles layout, spacing, and module specifics.
+   ----------------------------------------------------------- */
 
 :root{
-  /* === Brand tokens (official names) === */
-  --lime-green: var(--color-primary);      /* Lime Green */
-  --midnight-blue: var(--color-surface-1);   /* Midnight Blue */
+  /* Legacy aliases for older rules in this file */
+  --lime-green:    var(--color-primary);
+  --midnight-blue: var(--color-surface-1);
+  --lime-600:      var(--color-primary-600);
+  --lime-700:      var(--color-primary-700);
+  --text:          var(--color-text);
+  --border:        var(--color-border);
+  --panel:         var(--color-surface-2);
+  --accent:        var(--color-primary);
 
-  /* Tones */
-  --lime-600:var(--color-primary-600);
-  --lime-700:var(--color-primary-700);
-
-  /* App text + borders */
-  --text:var(--color-text);
-  --border:var(--color-border);
-
-  /* === Legacy aliases (keep old code working) === */
-  --midnight: var(--midnight-blue);
-  --lime: var(--lime-green);
-  --ink: var(--text);
-  --bg: var(--midnight);
-  --panel: var(--color-surface-2);
-  --muted:#aab3c5;
-  --accent: var(--lime-green);
-
-  /* Fluid type & control sizing */
+  /* Fluid type & control sizing (layout-only tokens) */
   --fs-base: clamp(14px, 2.2vw, 16px);
   --fs-sm:   clamp(12px, 1.9vw, 14px);
   --fs-btn:  clamp(13px, 2.4vw, 16px);
@@ -41,37 +36,52 @@
 html,body{ height:100% }
 html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
 body{
-  margin:0; background:var(--bg); color:var(--ink);
-  font-family: "Arvo", Georgia, serif;
-  font-size: var(--fs-base); line-height:1.5;
+  margin:0;
+  /* Font + colors come from theme.css (Poppins via --font-body) */
+  font-size: var(--fs-base);
+  line-height:1.5;
   overflow-wrap: anywhere;
 }
-.hidden{ display:none !important; } /* more robust for view toggling */
+
+/* Utilities */
+.hidden{ display:none !important; }
 h1,h2,h3{ margin:0 0 8px }
 h2{ font-size: var(--fs-h2); }
 h3{ font-size: var(--fs-h3); }
-.small{ font-size:var(--fs-sm); color:var(--muted) }
+.small{ font-size:var(--fs-sm); opacity:.85 }
 
 /* Top bar / nav */
-.top{ position:sticky; top:0; z-index:50; backdrop-filter:blur(8px); background:#000e1bcc; border-bottom:1px solid var(--border) }
-.top .inner{ max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:56px; padding:0 16px }
+.top{
+  position:sticky; top:0; z-index:50;
+  backdrop-filter:blur(8px);
+  background: color-mix(in srgb, var(--color-surface-1) 80%, transparent);
+  border-bottom:1px solid var(--border);
+}
+.top .inner{
+  max-width:1280px; margin:0 auto;
+  display:flex; align-items:center; justify-content:space-between;
+  height:56px; padding:0 16px
+}
 .logo{ display:flex; gap:8px; align-items:center }
-.mark{ width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg, var(--lime-green), var(--lime-green)) }
+.mark{
+  width:28px; height:28px; border-radius:8px;
+  background:linear-gradient(135deg, var(--lime-green), var(--lime-green))
+}
 
-.nav{ display:flex; gap:8px; overflow:auto; -ms-overflow-style:none; scrollbar-width:none; }
+/* Scrolling nav row (uses theme button visuals) */
+.nav{
+  display:flex; gap:8px; overflow:auto; -ms-overflow-style:none; scrollbar-width:none;
+}
 .nav::-webkit-scrollbar{ display:none; }
 .nav button{
-  appearance:none; background:var(--lime-green); border:1px solid transparent; color:var(--midnight-blue);
-  padding: var(--pad-y) var(--pad-x); border-radius:10px; cursor:pointer; transition:all .15s; min-height: var(--btn-min-h);
-  font-size: var(--fs-btn); max-width:100%; white-space:nowrap;
+  /* Only sizing; visuals come from theme.css (button) */
+  min-height: var(--btn-min-h);
+  padding: var(--pad-y) var(--pad-x);
+  font-size: var(--fs-btn);
 }
-.nav button:hover{ background:var(--lime-600); }
-.nav button.active{
-  background:var(--lime-700);
-  border-color:transparent; color:var(--midnight-blue);
-  box-shadow:0 0 0 2px rgba(214,237,23,.28) inset;
-}
+.nav button.active{ background: var(--lime-700); }
 
+/* Main container */
 main{ max-width:1280px; margin:0 auto; padding:16px }
 
 /* Panels & tiles */
@@ -109,67 +119,54 @@ main{ max-width:1280px; margin:0 auto; padding:16px }
   .home-grid{ grid-template-columns: 1fr; }
 }
 
-/* Buttons */
-button, .btn{ font-family: inherit; touch-action: manipulation; }
+/* Buttons/links: theme provides visuals; just size here */
+button, .btn{ font: inherit; touch-action: manipulation; }
 .btn{
-  appearance:none; background:var(--lime-green); border:1px solid transparent;
-  color:var(--midnight-blue); padding: var(--pad-y) var(--pad-x);
-  border-radius:12px; cursor:pointer; transition:.15s;
-  min-height: var(--btn-min-h); font-size: var(--fs-btn);
-  max-width:100%; white-space:normal; text-align:center; line-height:1.25;
+  min-height: var(--btn-min-h);
+  font-size: var(--fs-btn);
+  padding: var(--pad-y) var(--pad-x);
 }
-.btn:hover{ background:var(--lime-600); }
-.btn.tiny{ padding: calc(var(--pad-y) - 2px) calc(var(--pad-x) - 2px); font-size: clamp(12px, 2.1vw, 13.5px); min-height: clamp(32px, 7.2vw, 38px); }
-.btn-xl{ padding: calc(var(--pad-y) + 2px) calc(var(--pad-x) + 2px); border-radius:14px; font-size: clamp(14px, 2.6vw, 17px); }
+.btn.tiny{
+  padding: calc(var(--pad-y) - 2px) calc(var(--pad-x) - 2px);
+  font-size: clamp(12px, 2.1vw, 13.5px);
+  min-height: clamp(32px, 7.2vw, 38px);
+}
+.btn-xl{
+  padding: calc(var(--pad-y) + 2px) calc(var(--pad-x) + 2px);
+  border-radius:14px;
+  font-size: clamp(14px, 2.6vw, 17px);
+}
 
-/* World controls (Fullscreen / Cast) */
+/* World controls (Fullscreen / Cast) — sizing only */
 .control-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
 .board-ctrl{
   display:inline-flex; align-items:center; gap:6px;
   padding: var(--pad-y) var(--pad-x); border-radius:12px;
-  background:var(--lime-green); border:1px solid transparent; color:var(--midnight-blue);
-  cursor:pointer; transition:.15s; font-size: var(--fs-btn); min-height: var(--btn-min-h);
-  max-width:100%; white-space:normal; text-align:center; line-height:1.25;
-}
-.board-ctrl:hover{
-  background:var(--lime-600);
-  box-shadow:0 0 0 2px rgba(214,237,23,.25) inset;
+  min-height: var(--btn-min-h); font-size: var(--fs-btn);
 }
 
-/* Shared pill/button look (env + map selectors) */
+/* Pills (env + map selectors) — sizing only; visuals from theme buttons */
 .pill, .map-pill, .env-pill{
-  appearance:none; background:var(--lime-green); border:1px solid transparent; color:var(--midnight-blue);
-  padding: var(--pad-y) var(--pad-x); border-radius:12px; cursor:pointer; transition:.15s; font-size: var(--fs-btn); min-height: var(--btn-min-h);
-  max-width:100%; white-space: normal; text-align:center; line-height:1.25;
-}
-.pill:hover, .map-pill:hover, .env-pill:hover{
-  background:var(--lime-600);
-  box-shadow:0 0 0 2px rgba(214,237,23,.25) inset;
-}
-.pill.active, .map-pill.active, .env-pill.active{
-  background: var(--lime-700);
-  border-color: transparent;
-  color:var(--midnight-blue);
+  display:inline-flex; align-items:center; justify-content:center;
+  padding: var(--pad-y) var(--pad-x); border-radius:12px;
+  min-height: var(--btn-min-h); font-size: var(--fs-btn);
 }
 .env-grid, .map-list{ display:flex; gap:8px; flex-wrap:wrap; }
 
-/* World Map viewer — midnight background */
+/* World Map viewer */
 .world-stage{
   position:relative;
   border:1px solid var(--border);
   border-radius:12px;
   background:var(--midnight-blue);
   margin-inline:auto;
-  display:grid;
-  place-items:center;
-  overflow:hidden;
-  max-width:100%;
+  display:grid; place-items:center;
+  overflow:hidden; max-width:100%;
 }
 .world-stage .world-img,
 .world-img{
   display:block;
-  width:auto;
-  height:auto;
+  width:auto; height:auto;
   max-width:min(100%, 1280px);
   max-height:85vh;
   object-fit:contain;
@@ -177,13 +174,16 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
 }
 
 /* DM page */
-.dm-page{ background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:10px; }
+.dm-page{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:14px; padding:10px;
+}
 .dm-head{
   display:flex; align-items:center; justify-content:space-between;
   margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:6px;
 }
 
-/* Tabs: scroll on mobile (no squeezing), wrap on wide screens */
+/* Tabs: scroll on mobile, wrap on wide screens */
 .dm-tabs{
   display:flex; gap:6px; margin:6px 0 8px 0;
   overflow:auto; -ms-overflow-style:none; scrollbar-width:none; flex-wrap:nowrap;
@@ -194,13 +194,15 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
 }
 .dm-tab{
   flex: 0 0 auto;
-  text-align:center; padding: var(--pad-y) var(--pad-x); border-radius:999px; border:1px solid transparent;
-  background:var(--lime-green); color:var(--midnight-blue); cursor:pointer; transition:.15s; font-weight:700; min-height: var(--btn-min-h);
-  font-size: var(--fs-btn); max-width:100%;
+  text-align:center;
+  padding: var(--pad-y) var(--pad-x);
+  border-radius:999px;
+  min-height: var(--btn-min-h);
+  font-size: var(--fs-btn);
 }
-.dm-tab:hover{ background:var(--lime-600); }
-.dm-tab.active{ background:var(--lime-700); border-color: transparent; color:var(--midnight-blue); }
+.dm-tab.active{ background: var(--lime-700); }
 
+/* DM sections */
 .dm-section{
   margin-top:10px; background:var(--midnight-blue); border:1px solid var(--border);
   border-radius:12px; padding:10px;
@@ -209,12 +211,8 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
   display:grid; gap:10px; align-items:stretch; grid-auto-rows:1fr;
   grid-template-columns: repeat(3, minmax(0,1fr));
 }
-@media (max-width: 960px){
-  .dm-grid3{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-}
-@media (max-width: 640px){
-  .dm-grid3{ grid-template-columns: 1fr; }
-}
+@media (max-width: 960px){ .dm-grid3{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 640px){ .dm-grid3{ grid-template-columns: 1fr; } }
 
 .dm-character-box{
   display:flex; flex-direction:column; gap:10px;
@@ -246,59 +244,37 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
 .badges{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center }
 .badge{
   font-size: clamp(10px, 1.9vw, 11.5px); padding:3px 8px; border-radius:999px;
-  border:1px solid var(--border); background:var(--midnight-blue); color:#dbe1ee;
+  border:1px solid var(--border); background:var(--midnight-blue);
 }
 
+/* Title buttons (sizing only) */
 .dm-title-btn{
-  appearance:none; display:inline-flex; align-items:center; gap:8px; border-radius:999px; border:1px solid transparent;
-  padding: var(--pad-y) var(--pad-x); font-size: var(--fs-btn); font-weight:800; cursor:pointer; user-select:none; transition:.15s;
-  width:auto; justify-content:center; text-align:center; background:var(--lime-green); color:var(--midnight-blue); min-height: var(--btn-min-h);
-  max-width:100%;
+  display:inline-flex; align-items:center; gap:8px; border-radius:999px;
+  padding: var(--pad-y) var(--pad-x); font-size: var(--fs-btn); font-weight:800;
+  user-select:none; width:auto; justify-content:center; min-height: var(--btn-min-h);
 }
-.dm-title-btn:hover{ background:var(--lime-600); }
 .dm-title-btn.short{ display:inline-flex; align-items:center; justify-content:center; padding:8px; min-width:38px; height:38px; line-height:1; }
-/* semantic colours */
-.dm-title-btn.adv{ background:#065f46; color:#d1fae5; border-color:#0b7a5b }
-.dm-title-btn.dis{ background:#7f1d1d; color:#fee2e2; border-color:#9b2222 }
-.dm-character-box > .dm-actions{ display:flex; gap:6px; margin-top:6px; justify-content:center; align-items:center; }
 
-/* Quick dice inside DM tools */
+/* Quick dice */
 .quick-dice-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px }
 .quick-die-btn{
   display:inline-flex; align-items:center; gap:8px; padding: var(--pad-y) var(--pad-x); border-radius:12px;
-  background:var(--lime-green); border:1px solid transparent; cursor:pointer; color:var(--midnight-blue); transition:.15s; user-select:none;
-  font-size: var(--fs-btn); min-height: var(--btn-min-h); max-width:100%;
+  min-height: var(--btn-min-h); font-size: var(--fs-btn);
 }
-.quick-die-btn:hover{
-  background: var(--lime-600);
-  box-shadow:0 0 0 2px rgba(214,237,23,.22) inset;
-}
-
-/* Notes textarea (app + DM) */
-#app-notes, #dm-notes, .dm-section textarea{
-  background:var(--midnight-blue) !important; color:#dbe1ee !important;
-  border:1px solid var(--border); border-radius:8px;
-  font-size: var(--fs-base);
-}
-
-/* Dice styles */
 .dice-row{ display:flex; gap:8px; flex-wrap:wrap }
 .die-btn{
   display:inline-flex; align-items:center; gap:8px; padding: var(--pad-y) var(--pad-x); border-radius:12px;
-  background:var(--lime-green); border:1px solid transparent; color:var(--midnight-blue); cursor:pointer; transition:.15s; font-size: var(--fs-btn); font-weight:700;
-  min-height: var(--btn-min-h); max-width:100%;
-}
-.die-btn:hover{
-  background:var(--lime-600);
-  box-shadow:0 0 0 2px rgba(214,237,23,.22) inset;
+  font-size: var(--fs-btn); font-weight:700;
+  min-height: var(--btn-min-h);
 }
 .die-icon{ font-weight:800; opacity:.9 }
 
+/* Dice output */
 .roll-output{ display:flex; gap:12px; align-items:center; flex-wrap:wrap }
 .dice-hero{
   width: clamp(56px, 16vw, 72px);
   height: clamp(56px, 16vw, 72px);
-  display:grid; place-items:center; color:var(--accent);
+  display:grid; place-items:center;
   filter: drop-shadow(0 8px 20px rgba(0,0,0,.35));
 }
 .dice-hero svg,
@@ -308,7 +284,7 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
   stroke-linecap:round;
 }
 .dice-hero.rolling svg,
-.dice-hero.rolling img{ animation:spin .8s linear infinite; }
+.dice-hero.rolling img{ animation:spin 0.9s cubic-bezier(.2,.8,.2,1) infinite; }
 .roll-total.rolling{ animation:pulse .25s ease-in-out infinite alternate; }
 @keyframes pulse{ from{ transform:translateZ(0) scale(1); } to{ transform:translateZ(0) scale(1.05); } }
 
@@ -318,19 +294,15 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
   padding:12px 14px; min-width:190px;
   box-shadow:0 8px 28px rgba(0,0,0,.45);
 }
-.roll-total{ font-size: clamp(22px, 5.2vw, 26px); font-weight:900; letter-spacing:.2px }
-.roll-breakdown{ font-size: clamp(12px, 2.6vw, 13px); color:#cbd5e1; margin-top:4px }
-
-.dice-hero svg.spin{ animation:spin 0.9s cubic-bezier(.2,.8,.2,1) }
-@keyframes spin{ from{transform:rotate(0)} to{ transform:rotate(360deg)} }
-
-/* Keep the die spin fully inside its hero */
-.dice-hero{ overflow: hidden; }
-.roll-card{ position: relative; overflow: hidden; contain: layout paint; }
 .roll-total{
-  display: flex; align-items: center; justify-content: center; line-height: 1;
-  transform-origin: center; white-space: nowrap; will-change: transform;
+  display:flex; align-items:center; justify-content:center; line-height:1;
+  transform-origin:center; white-space:nowrap; will-change:transform;
+  font-weight:900; letter-spacing:.2px;
+  font-size: clamp(22px, 5.2vw, 26px);
 }
+.roll-breakdown{ font-size: clamp(12px, 2.6vw, 13px); opacity:.85; margin-top:4px }
+
+@keyframes spin{ from{transform:rotate(0)} to{ transform:rotate(360deg)} }
 
 /* Toast */
 .dm-toast{
@@ -346,12 +318,11 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
   line-height:1; font-weight:900; user-select:none;
 }
 .dm-toast .close:hover{ opacity:1 }
-.dm-toast .close:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
 
 /* Section heads */
 .section-head h2{ margin:0 0 6px; }
 
-/* Accessible focus rings (global) */
+/* Global focus rings on common interactive tiles */
 :where(.btn,.board-ctrl,.pill,.map-pill,.env-pill,.die-btn,.dm-tab,.dm-title-btn):focus-visible{
   outline:2px solid var(--accent);
   outline-offset:2px;
@@ -361,82 +332,22 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
 .view-anim{ animation: fadeSlideIn .24s ease both; }
 @keyframes fadeSlideIn{ from{ opacity:0; transform: translateY(6px); } to{ opacity:1; transform: translateY(0); } }
 
-/* Hover/focus for ANY home tile */
-.home-grid .tile:hover,
-.home-grid .tile:focus-visible{
-  border-color: var(--lime-green);
-  box-shadow: 0 8px 28px rgba(0,0,0,.45),
-              0 0 0 2px rgba(214,237,23,.30) inset;
-  transform: translateY(-2px);
-  background: rgba(214,237,23,.10);
-}
-
-/* Logbook host view polish */
-#view-logbook .panel { border-radius: 12px; overflow: hidden; }
-#logbook-frame { background: var(--bg); display: block; }
-.tile-home-logbook h2 { font-family: "Arvo", Georgia, serif; }
-
-/* Landing tile highlight for Character Manager (optional flair) */
-.tile-home-characters{
-  background:
-    linear-gradient(180deg, rgba(214,237,23,0.12), rgba(0,0,0,0)),
-    var(--midnight-blue);
-  border: 1px solid var(--border);
-}
-.tile-home-characters:hover{
-  box-shadow: 0 0 0 2px rgba(214,237,23,.25) inset;
-}
-
-/* === Accessibility & Readability Upgrades (patch) === */
-/* Keep Arvo default per project; optionally enable Aptos with .use-aptos on <html> */
-.use-aptos html, .use-aptos body { font-family: "Aptos","Arvo", Georgia, serif; }
-
-/* Buttons: Lime Green with black text; Ghost buttons keep white text on dark surfaces */
-.btn, button {
-  background: var(--lime-green);
-  color: #000; /* black on green */
-  border: 1px solid transparent;
-  padding: .70rem 1rem;
-  border-radius: .75rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform .06s ease, background .1s ease, box-shadow .1s ease;
-}
-.btn:hover, button:hover { background: var(--lime-600); box-shadow: 0 0 0 2px rgba(214,237,23,.25) inset; }
-.btn:active, button:active { background: var(--lime-700); transform: translateY(1px); }
-.btn:focus-visible, button:focus-visible { outline: 3px solid var(--lime-green); outline-offset: 3px; }
-.btn.ghost { background: transparent; border: 1px solid var(--lime-green); color: #fff; }
-.btn.ghost:hover { background: rgba(214,237,23,.12); }
-
-/* Tiles get clearer hover */
-.tile, .panel.tile {
-  transition: transform .08s ease, box-shadow .1s ease, border-color .1s ease;
-}
+/* Home tiles hover */
+.tile, .panel.tile { transition: transform .08s ease, box-shadow .1s ease, border-color .1s ease; }
 .tile:hover, .panel.tile:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(0,0,0,.35);
   border-color: var(--lime-green);
 }
 
-/* Home tile for Encounters */
-.tile-home-encounters {
-  background:
-    linear-gradient(180deg, rgba(214,237,23,0.12), rgba(0,0,0,0)),
-    var(--midnight-blue);
-  border: 1px solid var(--border);
-}
-.tile-home-encounters:hover { box-shadow: 0 0 0 2px rgba(214,237,23,.25) inset; }
-
-/* === Fix: remove the green hue on Encounter + Character tiles === */
+/* Remove old green gradients on specific tiles (known fix) */
 .tile-home-encounters,
 .tile-home-characters {
-  background: var(--panel) !important;   /* match normal tiles/panels */
-  background-image: none !important;     /* kill the gradient */
+  background: var(--panel) !important;
+  background-image: none !important;
   border: 1px solid var(--border) !important;
   box-shadow: none !important;
 }
-
-/* keep the same hover as the other tiles */
 .tile-home-encounters:hover,
 .tile-home-characters:hover {
   background: rgba(255,255,255,.03) !important;
@@ -444,3 +355,8 @@ button, .btn{ font-family: inherit; touch-action: manipulation; }
   box-shadow: 0 6px 18px rgba(0,0,0,.35);
 }
 
+/* Logbook host view polish */
+#view-logbook .panel { border-radius: 12px; overflow: hidden; }
+#logbook-frame { display: block; }
+
+/* (Removed font overrides like "Arvo" and ".use-aptos") */
