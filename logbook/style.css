@@ -1,140 +1,189 @@
-@import url("../CSS/theme.css");
+@import url("../CSS/theme.css"); /* must be line 1 */
 
+/* -----------------------------------------------------------
+   LOGBOOK · module styles (layout + component specifics only)
+   All colours/typography/controls come from theme.css
+   ----------------------------------------------------------- */
+
+/* Sizing tokens just for this module (safe, not visual brand) */
 :root{
-  /* Colours now pulled from central theme */
-  --lime-green: var(--color-primary);         /* Primary (buttons/links/focus) */
-  --midnight-blue: var(--color-surface-1);    /* App background */
-  --lime-600: var(--color-primary-600);       /* Hover */
-  --lime-700: var(--color-primary-700);       /* Active */
-  --text: var(--color-text);                  /* Text */
-  --border: var(--color-border);              /* Borders */
+  --fs-base: clamp(14px, 2.2vw, 16px);
+  --fs-sm:   clamp(12px, 1.9vw, 14px);
+  --fs-btn:  clamp(13px, 2.4vw, 16px);
+  --fs-h2:   clamp(18px, 3.2vw, 22px);
+  --fs-h3:   clamp(16px, 2.8vw, 20px);
 
-  /* Font (use central theme variable) */
-  --font: var(--font-body);
-
-  /* Existing sizing/spacing tokens unchanged */
-  --fs-base:clamp(14px,2.2vw,16px);
-  --fs-sm:clamp(12px,1.9vw,14px);
-  --fs-btn:clamp(13px,2.4vw,16px);
-  --fs-h2:clamp(18px,3.2vw,22px);
-  --fs-h3:clamp(16px,2.8vw,20px);
-
-  --btn-min-h:clamp(38px,8.5vw,44px);
-  --pad-y:clamp(8px,2.2vw,12px);
-  --pad-x:clamp(10px,3vw,14px);
-  --radius:12px;
+  --btn-min-h: clamp(38px, 8.5vw, 44px);
+  --pad-y: clamp(8px, 2.2vw, 12px);
+  --pad-x: clamp(10px, 3vw, 14px);
+  --radius: 12px;
 }
 
 /* Base */
-*{box-sizing:border-box}
-html,body{height:100%}
+html, body { height: 100%; }
 body{
-  margin:0; background:var(--midnight-blue); color:var(--text);
-  font-family:var(--font); font-size:var(--fs-base); line-height:1.5;
+  margin: 0;
+  /* theme.css already sets background/text/font; we keep sizes here */
+  font-size: var(--fs-base);
+  line-height: 1.5;
 }
-.hidden{display:none}
-h1,h2,h3{margin:0 0 8px}
-h2{font-size:var(--fs-h2)} h3{font-size:var(--fs-h3)}
-.small,.helper{font-size:var(--fs-sm); opacity:.95}
+.hidden { display: none; }
 
-/* Top bar */
-.top{position:sticky; top:0; z-index:50; backdrop-filter:blur(8px); background:#000e1bcc; border-bottom:1px solid var(--border)}
-.top .inner{max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:56px; padding:0 16px}
-.logo{display:flex; gap:8px; align-items:center}
-.mark{width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--lime-green),var(--lime-green))}
-.nav{display:flex; gap:8px}
-.nav button{appearance:none; background:var(--lime-green); color:var(--midnight-blue);
-  border:1px solid transparent; padding:var(--pad-y) var(--pad-x); border-radius:10px; min-height:var(--btn-min-h); font-size:var(--fs-btn); cursor:pointer}
-.nav button:hover{background:var(--lime-600)} .nav button.active{background:var(--lime-700)}
+h1,h2,h3 { margin: 0 0 8px; }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+.small,.helper { font-size: var(--fs-sm); opacity: .95; }
 
-/* Layout */
+/* ---------- Top bar ---------- */
+.top{
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--color-surface-1) 88%, transparent);
+  border-bottom: 1px solid var(--color-border);
+}
+.top .inner{
+  max-width: 1280px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; padding: 0 16px;
+}
+.logo{ display: flex; gap: 8px; align-items: center; }
+.mark{
+  width: 28px; height: 28px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary));
+}
+
+/* Nav buttons: use global button visuals; just spacing here */
+.nav{ display: flex; gap: 8px; }
+.nav button{
+  /* theme.css styles <button> already; we only tweak size */
+  min-height: var(--btn-min-h);
+  padding: var(--pad-y) var(--pad-x);
+  font-size: var(--fs-btn);
+}
+
+/* Mark the active view with the darker ramp from the theme */
+.nav button.active { background: var(--color-primary-700); }
+
+/* ---------- Layout ---------- */
 .page{
-  max-width:1280px; margin:0 auto; padding:16px;
-  display:grid; grid-template-columns:320px 1fr; gap:16px;
+  max-width: 1280px; margin: 0 auto; padding: 16px;
+  display: grid; grid-template-columns: 320px 1fr; gap: 16px;
 }
-@media (max-width:900px){ .page{grid-template-columns:1fr} }
+@media (max-width: 900px){ .page{ grid-template-columns: 1fr; } }
 
-/* Buttons */
-.btn, button{background:var(--lime-green); color:var(--midnight-blue); border:1px solid transparent}
-.btn:hover, button:hover{background:var(--lime-600)} .btn:active, button:active{background:var(--lime-700)}
-.btn:focus-visible, button:focus-visible{outline:2px solid var(--lime-green); outline-offset:2px}
-.btn{padding:var(--pad-y) var(--pad-x); border-radius:12px; min-height:var(--btn-min-h); font-size:var(--fs-btn)}
-.btn.tiny{padding:6px 10px; min-height:clamp(32px,7.2vw,38px); font-size:clamp(12px,2.1vw,13.5px)}
-.btn-ghost{background:transparent; color:var(--text); border:1px solid var(--border)}
-/* Use primary tint for hover so it follows the central theme colour */
-.btn-ghost:hover{background:color-mix(in srgb, var(--lime-green) 10%, transparent)}
-.btn-danger{background:#ff5252; color:#0b0b0b}
-.btn-danger:hover{background:#ff6d6d}
+/* ---------- Panels / Cards ---------- */
+.panel{
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 14px;
+}
+.section-head{ margin-bottom: 6px; }
+.log-meta{
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px; color: #cbd5e1; font-size: var(--fs-sm);
+}
 
-/* Panels */
-.panel{background:var(--midnight-blue); border:1px solid var(--border); border-radius:12px; padding:14px}
-.section-head{margin-bottom:6px}
-.log-meta{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; color:#cbd5e1; font-size:var(--fs-sm)}
-
-/* Sidebar */
-.log-sidebar{background:var(--midnight-blue); border:1px solid var(--border); border-radius:12px; padding:10px}
+/* ---------- Sidebar ---------- */
+.log-sidebar{
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px;
+}
 .sidebar-head{
-  position:sticky; top:0; z-index:2; background:var(--midnight-blue);
-  display:flex; align-items:center; justify-content:space-between;
-  gap:8px; padding-bottom:8px; margin-bottom:8px; border-bottom:1px solid var(--border);
+  position: sticky; top: 0; z-index: 2;
+  background: var(--color-surface-2);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding-bottom: 8px; margin-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
 }
-.sidebar-head-actions{display:flex; gap:8px; flex-wrap:wrap}
+.sidebar-head-actions{ display: flex; gap: 8px; flex-wrap: wrap; }
 .sidebar-list{
-  display:flex; flex-direction:column; gap:12px;
-  max-height:60vh; overflow-y:auto; overflow-x:hidden; padding:2px 2px 8px 2px;
+  display: flex; flex-direction: column; gap: 12px;
+  max-height: 60vh; overflow-y: auto; overflow-x: hidden; padding: 2px 2px 8px 2px;
 }
 .sidebar-item{
   /* Wrapping layout: never overflow horizontally */
-  display:grid; grid-template-columns: 1fr auto; align-items:center; gap:8px;
-  width:100%; min-width:0;
-  padding:10px 12px; border:1px solid var(--border); border-radius:12px;
-  background:#031322; transition:.15s;
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px;
+  width: 100%; min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border); border-radius: 12px;
+  background: var(--color-surface-1);
+  transition: .15s;
 }
-.sidebar-item:hover{border-color:var(--lime-green); transform:translateY(-1px)}
+.sidebar-item:hover{
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
 .sidebar-item .title{
-  font-weight:800; min-width:0; overflow-wrap:anywhere; word-break:break-word; white-space:normal;
+  font-weight: 800;
+  min-width: 0; overflow-wrap: anywhere; word-break: break-word; white-space: normal;
 }
 .sidebar-item .stamp{
-  grid-column:1 / -1; font-size:var(--fs-sm); color:#aab3c5; white-space:normal; overflow-wrap:anywhere;
+  grid-column: 1 / -1;
+  font-size: var(--fs-sm); color: #aab3c5;
+  white-space: normal; overflow-wrap: anywhere;
 }
-.sidebar-item .row-actions{justify-self:end}
-.sidebar-item .check{accent-color:var(--lime-green); width:18px; height:18px; margin-right:6px}
+.sidebar-item .row-actions{ justify-self: end; }
+.sidebar-item .check{ accent-color: var(--color-primary); width: 18px; height: 18px; margin-right: 6px; }
 .sidebar-bulk{
-  margin-top:10px; padding-top:8px; border-top:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
 
-/* Editor */
-.editor-wrap.hidden{display:none} /* <-- hide entire editor when no current log */
-.editor{position:relative; overflow:clip}
-.log-title-row{display:flex; gap:8px; align-items:center; margin-bottom:6px}
+/* ---------- Editor ---------- */
+.editor-wrap.hidden{ display: none; } /* hide entire editor when no current log */
+.editor{ position: relative; overflow: clip; }
+.log-title-row{ display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
 .log-title{
-  flex:1 1 auto; font-size:var(--fs-h3); font-weight:700; padding:6px 8px; border-radius:8px;
-  border:1px solid var(--border); background:var(--midnight-blue); color:var(--text)
+  flex: 1 1 auto;
+  font-size: var(--fs-h3); font-weight: 700;
+  padding: 6px 8px; border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--input-bg);
+  color: var(--color-text);
 }
-.log-title[readonly]{opacity:.95; background:#031322}
-#title-helper{margin-bottom:6px}
+.log-title[readonly]{ opacity: .95; background: var(--color-surface-2); }
+#title-helper{ margin-bottom: 6px; }
 
 /* Notes area */
-.notes-wrap{margin-top:10px}
+.notes-wrap{ margin-top: 10px; }
 .notes-card{
-  position:relative;
-  background:#021422; border:1px solid var(--border); border-radius:12px; padding:10px;
-  box-shadow:0 4px 14px rgba(0,0,0,.35);
+  position: relative;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 12px; padding: 10px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
 }
 .log-body{
-  width:100%; min-height:200px; resize:vertical; margin:6px 0 10px 0;
-  border-radius:8px; border:1px solid var(--border); background:var(--midnight-blue); color:var(--text); padding:8px; font-size:var(--fs-base)
+  width: 100%; min-height: 200px; resize: vertical; margin: 6px 0 10px 0;
+  border-radius: 8px; border: 1px solid var(--color-border);
+  background: var(--input-bg); color: var(--color-text);
+  padding: 8px; font-size: var(--fs-base);
 }
 
-/* Animations */
+/* ---------- Buttons ---------- */
+/* Use global .btn/.btn.ghost visuals from theme.css
+   Just provide local size variants if you need them. */
+.btn{ min-height: var(--btn-min-h); font-size: var(--fs-btn); }
+.btn.tiny{
+  padding: 6px 10px;
+  min-height: clamp(32px, 7.2vw, 38px);
+  font-size: clamp(12px, 2.1vw, 13.5px);
+}
+/* Optional: a danger variant that aligns with theme */
+.btn-danger{ background: #ff5252; color: #0b0b0b; }
+.btn-danger:hover{ background: #ff6d6d; }
+
+/* ---------- Animations (unchanged) ---------- */
 @keyframes bounceIn {
   0%{opacity:0; transform:translateY(-16px) scale(.98)}
   55%{opacity:1; transform:translateY(3px) scale(1.01)}
   80%{transform:translateY(-1px) scale(1)}
   100%{opacity:1; transform:translateY(0) scale(1)}
 }
-.bounce-in{animation:bounceIn .42s cubic-bezier(.2,.8,.2,1) both}
+.bounce-in{ animation: bounceIn .42s cubic-bezier(.2,.8,.2,1) both; }
 
 /* Border puff FX anchored to notes card border */
 .notes-card.saving::after{
@@ -142,8 +191,8 @@ h2{font-size:var(--fs-h2)} h3{font-size:var(--fs-h3)}
   background:
     radial-gradient(closest-side at 50% 50%, rgba(214,237,23,.32), rgba(214,237,23,.12) 60%, transparent 70%),
     conic-gradient(from 0deg, rgba(214,237,23,.25), rgba(214,237,23,.0) 25%, rgba(214,237,23,.25) 50%, rgba(214,237,23,.0) 75%, rgba(214,237,23,.25));
-  filter:blur(8px);
-  animation:borderPuff .45s ease-out 1 forwards;
+  filter: blur(8px);
+  animation: borderPuff .45s ease-out 1 forwards;
 }
 @keyframes borderPuff{
   0%{opacity:0; transform:scale(.96)}
@@ -151,8 +200,8 @@ h2{font-size:var(--fs-h2)} h3{font-size:var(--fs-h3)}
   100%{opacity:0; transform:scale(1.06)}
 }
 .edge-confetti{
-  position:absolute; width:6px; height:10px; border-radius:2px; background:var(--lime-green);
-  opacity:0; animation:edgeConfetti 650ms cubic-bezier(.2,.8,.2,1) forwards;
+  position:absolute; width:6px; height:10px; border-radius:2px; background:var(--color-primary);
+  opacity:0; animation: edgeConfetti 650ms cubic-bezier(.2,.8,.2,1) forwards;
 }
 @keyframes edgeConfetti{
   0%{opacity:0; transform:translate(0,0) rotate(0) scale(.9)}
@@ -166,24 +215,25 @@ h2{font-size:var(--fs-h2)} h3{font-size:var(--fs-h3)}
   80%{opacity:1; transform:translateY(1px) scale(1.01)}
   100%{opacity:1; transform:translateY(0) scale(1)}
 }
-.pop-in{animation:popIn .32s cubic-bezier(.2,.8,.2,1) both}
+.pop-in{ animation: popIn .32s cubic-bezier(.2,.8,.2,1) both; }
 
 /* Modal */
-.modal{position:fixed; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.45); z-index:1000}
-.modal.hidden{display:none}
+.modal{ position:fixed; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.45); z-index:1000; }
+.modal.hidden{ display:none; }
 .modal-card{
-  width:min(560px, 92vw);
-  background:#06182a; border:1px solid var(--border); border-radius:14px; padding:14px;
-  box-shadow:0 20px 50px rgba(0,0,0,.45);
+  width: min(560px, 92vw);
+  background: #06182a; /* a slightly different panel tone works fine */
+  border: 1px solid var(--color-border); border-radius: 14px; padding: 14px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.45);
 }
-.modal-card h3{margin:0 0 8px}
-.modal-body{max-height:40vh; overflow:auto}
-.modal-body ul{margin:8px 0 0 18px}
-.modal-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:12px}
+.modal-card h3{ margin: 0 0 8px; }
+.modal-body{ max-height: 40vh; overflow: auto; }
+.modal-body ul{ margin: 8px 0 0 18px; }
+.modal-actions{ display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
 
 /* Reduced motion */
 @media (prefers-reduced-motion:reduce){
-  .bounce-in{animation:none!important}
-  .notes-card.saving::after,.edge-confetti{animation:none!important}
-  .pop-in{animation:none!important}
+  .bounce-in{ animation: none !important; }
+  .notes-card.saving::after,.edge-confetti{ animation: none !important; }
+  .pop-in{ animation: none !important; }
 }
