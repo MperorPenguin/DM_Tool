@@ -131,3 +131,65 @@ html, body { font-family: var(--font-body, "Arvo", Georgia, serif); }
 }
 
 .foot{ text-align:center; opacity:.8; }
+
+/* === Dark-themed selects (uses Base Alpha tokens) === */
+
+/* Hint to browsers that we're dark-themed so native controls prefer dark surfaces */
+:root { color-scheme: dark; }
+
+/* Base look for all selects in this module */
+select,
+.field select {
+  background: var(--input-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0.5rem 2.25rem 0.5rem 0.6rem; /* room for the arrow */
+  line-height: 1.2;
+  min-height: 2.25rem;
+  appearance: none;           /* custom arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Hover/active states to match buttons */
+select:hover { border-color: var(--color-primary-600); }
+select:active { border-color: var(--color-primary-700); }
+
+/* Focus ring: use brand color */
+select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Disabled style */
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Dropdown list colors (supported in most browsers; OS popup may override) */
+option,
+optgroup {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* Make optgroup labels slightly dimmer for hierarchy */
+optgroup[label] { color: rgba(234, 242, 236, 0.75); }
+
+/* Custom arrow (inline SVG; inherits currentColor) */
+select {
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 1rem;
+}
+
+/* High-contrast Windows support */
+@media (forced-colors: active) {
+  select { border-color: ButtonText; }
+  select:focus-visible { outline-color: Highlight; }
+}
+
