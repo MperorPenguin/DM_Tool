@@ -290,4 +290,109 @@ optgroup[label] { color: color-mix(in srgb, var(--color-text) 75%, transparent);
   margin-bottom: .25rem;
   white-space: normal;
 }
+/* =========================================================
+   Monster form: clean, dark, self-sizing controls
+   ========================================================= */
+
+/* Make the 5-col grid flexible and give it breathing room */
+#monsterForm.grid.cols-5.compact {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: .75rem;
+  align-items: start;
+}
+
+/* Field block = label on top, control underneath; allow shrink */
+#monsterForm .field {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto minmax(2.6rem, auto);
+  gap: .3rem;
+}
+
+/* Span-2 helper still respected in your markup */
+#monsterForm .field.cols-2 { grid-column: span 2; }
+
+/* Labels: wrap nicely without pushing layout */
+#monsterForm .field > span {
+  display: block;
+  font-size: .9rem;
+  line-height: 1.2;
+  color: var(--color-text);
+  opacity: .9;
+  white-space: normal;
+}
+
+/* Controls: dark, no inner seams, consistent height */
+#monsterForm input,
+#monsterForm select {
+  width: 100%;
+  min-width: 0;
+  height: 2.75rem;
+  padding: .55rem .9rem;
+  background: var(--input-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  /* Kill any inherited effects that cause “pill seams” */
+  box-shadow: none !important;
+  background-clip: padding-box;
+  backdrop-filter: none !important;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Placeholders readable but subtle */
+#monsterForm input::placeholder { 
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+/* Select arrow (keeps dark theme) */
+#monsterForm select {
+  padding-right: 2.25rem;
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .6rem center;
+  background-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#monsterForm option,
+#monsterForm optgroup {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* States to match theme */
+#monsterForm input:hover,
+#monsterForm select:hover { border-color: var(--color-primary-600); }
+#monsterForm input:active,
+#monsterForm select:active { border-color: var(--color-primary-700); }
+#monsterForm input:focus-visible,
+#monsterForm select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Compact numeric field in the “Count” control on the right rows */
+#groupsList .row.group .right input[type="number"] { width: 5.5ch; }
+
+/* The groups list: prevent squish, wrap text on left */
+#groupsList .row.group { display: flex; align-items: center; gap: .8rem; }
+#groupsList .row.group .left { flex: 1 1 auto; min-width: 0; }
+#groupsList .row.group .left strong { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+#groupsList .row.group .left small  { display: block; margin-top: .2rem; overflow-wrap: anywhere; opacity: .9; }
+#groupsList .row.group .right { flex: 0 0 auto; display: inline-flex; align-items: center; gap: .5rem; white-space: nowrap; }
+
+/* Responsive: stop cramming at narrower widths */
+@media (max-width: 1100px) {
+  #monsterForm.grid.cols-5.compact { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  #monsterForm.grid.cols-5.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
