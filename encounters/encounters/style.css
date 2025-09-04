@@ -221,4 +221,73 @@ a.btn.ghost:active {
 /* Nudge spacing so inline styles don't cause stacking */
 header .bar .actions .btn { margin: 0; }
 #btn-enemy-admin { margin-left: 0 !important; }   /* overrides inline margin-left */
+/* --- Form grid: allow inputs to shrink and wrap nicely --- */
+.grid.cols-5.compact {
+  grid-template-columns: repeat(5, minmax(0, 1fr)); /* allow shrink */
+  gap: .6rem;
+}
+.field { min-width: 0; } /* let children shrink inside grid cells */
+.field input,
+.field select {
+  width: 100%;
+  min-width: 0;
+}
+
+/* --- Long select labels: keep dark theme + ellipsis in the closed state --- */
+.field select,
+select {
+  background: var(--input-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: .5rem 2.25rem .5rem .6rem;
+  line-height: 1.2;
+  appearance: none;
+  overflow: hidden;           /* needed for text-overflow */
+  text-overflow: ellipsis;    /* show … when option text is long */
+  white-space: nowrap;        /* single-line in the closed control */
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .6rem center;
+  background-size: 1rem;
+}
+select:hover { border-color: var(--color-primary-600); }
+select:active { border-color: var(--color-primary-700); }
+select:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+option, optgroup { background: var(--color-surface-2); color: var(--color-text); }
+optgroup[label] { color: color-mix(in srgb, var(--color-text) 75%, transparent); }
+
+/* --- Groups list rows: stop overlap, allow wrapping on the left --- */
+#groupsList .row.group {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+}
+#groupsList .row.group .left {
+  flex: 1 1 auto;
+  min-width: 0;                    /* enable text wrapping/ellipsis */
+}
+#groupsList .row.group .left strong { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+#groupsList .row.group .left small  { display: block; margin-top: .2rem; overflow-wrap: anywhere; word-break: break-word; opacity: .9; }
+
+#groupsList .row.group .right {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  white-space: nowrap;             /* keep controls on one line */
+}
+#groupsList .row.group .right input[type="number"] {
+  width: 5.5ch;                    /* compact numeric field */
+}
+
+/* --- Labels above inputs: let them wrap without pushing layout --- */
+.field > span {
+  display: block;
+  font-size: .9rem;
+  line-height: 1.2;
+  margin-bottom: .25rem;
+  white-space: normal;
+}
 
