@@ -1,58 +1,68 @@
 /* ===================================================================
-   DocumentsTabletopPals · Central Theme (Poppins demo palette)
-   Visuals + global control baselines (no page-specific layouts)
+   DocumentsTabletopPals · Central Theme (Base Alpha)
+   Visuals + global containment/sizing + mobile polish
    =================================================================== */
 
-/* Optional: project font */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
 /* -------------------- Design Tokens -------------------- */
 :root{
-  /* Primary action colours */
-  --color-primary:     #84dd63;  /* buttons, links, focus ring */
-  --color-primary-600: #6baa75;  /* hover */
-  --color-primary-700: #4a7b57;  /* active */
+  --color-primary:     #84dd63;
+  --color-primary-600: #6baa75;
+  --color-primary-700: #4a7b57;
 
-  /* Surfaces & text */
-  --color-surface-1:   #121416;  /* page background */
-  --color-surface-2:   #1b2024;  /* cards/panels */
-  --color-border:      #30363d;  /* lines/borders */
-  --color-text:        #eaf2ec;  /* global text colour */
-  --input-bg:          #0f1517;  /* input background */
+  --color-surface-1:   #121416;
+  --color-surface-2:   #1b2024;
+  --color-border:      #30363d;
+  --color-text:        #eaf2ec;
+  --input-bg:          #0f1517;
 
-  /* Typography */
   --font-body: Poppins, system-ui, -apple-system, "Segoe UI", Roboto, Arimo, Helvetica, Arial, sans-serif;
 
-  /* Global control dims (visual baselines) */
+  /* Shared control dimensions (visual baselines) */
   --control-height: 2.75rem;
   --control-radius: 12px;
   --control-pad-x: .9rem;
   --control-pad-y: .55rem;
 
-  /* Hint browsers we’re dark-themed (affects native popups) */
+  /* Grid gap defaults (modules can override locally) */
+  --grid-gap: 1rem;
+  --grid-gap-compact: .75rem;
+
   color-scheme: dark;
 }
 
-/* Use the body font everywhere without touching HTML */
+/* Global body font */
 html body { font-family: var(--font-body) !important; }
 
-/* Accessible global focus ring using the brand colour */
+/* Accessible focus ring */
 :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
 /* -------------------- Global Safety Resets -------------------- */
 
-/* 1) Never let padding/borders push boxes out of containers */
+/* 1) Box sizing so padding/borders never push outside containers */
 *, *::before, *::after { box-sizing: border-box; }
 
-/* 2) Children of common flex/grid wrappers are allowed to shrink */
-.grid > *, .row > *, .actions > *, .bar > *, header .actions > * { min-width: 0; max-width: 100%; }
+/* 2) Page background & text */
+html, body { background: var(--color-surface-1); color: var(--color-text); }
 
-/* 3) Cards/panels default surface & border (visual) */
+/* 3) Cards/panels baseline */
 .card, .panel { background: var(--color-surface-2); border: 1px solid var(--color-border); }
 
-/* -------------------- Controls (platform-wide visuals) -------------------- */
+/* 4) Anything inside a card should not overflow its area */
+.card * { max-width: 100%; }
+.card img, .card svg, .card video, .card canvas, .card iframe {
+  display: block; max-width: 100%; height: auto;
+}
+/* Clip runaway content, but prefer not to clip focus rings */
+.card { overflow: hidden; }
+@supports (overflow: clip) { .card { overflow: clip; } }
 
-/* Inputs/selects/textareas share a dark look and never overflow */
+/* 5) Common wrappers let children shrink instead of overflow */
+.grid > *, .row > *, .actions > *, .bar > *, header .actions > * { min-width: 0; max-width: 100%; }
+
+/* -------------------- Controls (platform-wide visuals & sizing) -------------------- */
+
 input, select, textarea {
   background: var(--input-bg);
   color: var(--color-text);
@@ -63,24 +73,16 @@ input, select, textarea {
   box-shadow: none;
   background-clip: padding-box;
 }
-
-/* In typical form markup, fields should fill their cell width safely */
-.field > input,
-.field > select,
-.field > textarea {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
+.field > input, .field > select, .field > textarea {
+  width: 100%; max-width: 100%; min-width: 0;
 }
 
-/* Placeholder legible but subtle */
 input::placeholder, textarea::placeholder {
   color: color-mix(in srgb, var(--color-text) 55%, transparent);
 }
 
-/* Select arrow + closed-state ellipsis; dropdown palette stays dark */
 select {
-  padding-right: 2.25rem;          /* space for arrow */
+  padding-right: 2.25rem;
   appearance: none; -webkit-appearance: none; -moz-appearance: none;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   background-image:
@@ -92,38 +94,93 @@ select {
 option, optgroup { background: var(--color-surface-2); color: var(--color-text); }
 optgroup[label] { color: color-mix(in srgb, var(--color-text) 75%, transparent); }
 
-/* Hover/active borders respect brand ramp */
 input:hover, select:hover, textarea:hover { border-color: var(--color-primary-600); }
 input:active, select:active, textarea:active { border-color: var(--color-primary-700); }
 
-/* Buttons (primary) */
+/* Buttons (center label, ellipsis; no overflow) */
 .btn, button {
   background: var(--color-primary);
-  color: #0b0b0b;              /* dark text for contrast */
+  color: #0b0b0b;
   border: 1px solid transparent;
   border-radius: 10px;
+
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 0; max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  height: var(--control-height);
 }
 .btn:hover   { background: var(--color-primary-600); }
 .btn:active  { background: var(--color-primary-700); }
 .btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+a.btn { text-decoration: none; }
 
-/* Ghost buttons */
 .btn.ghost {
   background: transparent;
   color: var(--color-primary);
   border: 1px solid var(--color-primary);
 }
-.btn.ghost:hover {
-  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+.btn.ghost:hover { background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
+
+/* Actions rows never overlap; wrap when needed */
+.actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+
+/* -------------------- Grid utilities (safe minmax fix) -------------------- */
+/* NB: These are gentle defaults. Module CSS can still override them. */
+.grid { display: grid; gap: var(--grid-gap); }
+.grid.tight { gap: .5rem; }
+.grid.compact { gap: var(--grid-gap-compact); }
+
+.grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.grid.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.grid.cols-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+.grid.cols-5 { grid-template-columns: repeat(5, minmax(0,1fr)); }
+.grid.cols-6 { grid-template-columns: repeat(6, minmax(0,1fr)); }
+
+/* -------------------- Header / Tabs – mobile polish -------------------- */
+
+/* Sticky header for better mobile UX */
+header.wrap.bar { position: sticky; top: 0; z-index: 50; background: var(--color-surface-1); }
+
+/* Tabs become a swipeable row on small screens (no HTML changes needed) */
+@media (max-width: 900px) {
+  nav.tabs {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: .25rem;
+    mask-image: linear-gradient(90deg, transparent 0, #000 1rem, #000 calc(100% - 1rem), transparent 100%);
+  }
+  nav.tabs .tab {
+    display: inline-flex;
+    margin-right: .5rem;
+    scroll-snap-align: start;
+  }
 }
 
-/* Page background & default text */
-html, body { background: var(--color-surface-1); color: var(--color-text); }
+/* -------------------- Optional burger (CSS-only styling)
+   To activate: add <button class="burger btn ghost" aria-expanded="false"></button>
+   near your nav in the header. Toggling aria-expanded=true can be done by tiny JS,
+   but the styles below are ready and harmless if the button doesn’t exist. */
+.burger {
+  --burger-size: 24px;
+  position: relative;
+  width: calc(var(--burger-size) + 18px);
+  padding-inline: .75rem;
+}
+.burger::before, .burger::after, .burger span {
+  content: ""; display: block; height: 2px; background: currentColor; border-radius: 2px;
+}
+.burger::before { width: var(--burger-size); margin: 6px 0 4px; }
+.burger span    { width: var(--burger-size); }
+.burger::after  { width: var(--burger-size); margin: 4px 0 6px; }
 
-/* Inputs inherit dark palette too */
-input, textarea { color: var(--color-text); background: var(--input-bg); }
+@media (min-width: 901px) { .burger { display: none; } }
+/* If you later add a class on <body> like .nav-collapsed, you can hide tabs */
+/* body.nav-collapsed nav.tabs { display: none; } */
 
-/* -------------------- Legacy token aliases (back-compat) -------------------- */
+/* -------------------- Legacy aliases (back-compat) -------------------- */
 :root{
   --lime-green:    var(--color-primary);
   --lime-600:      var(--color-primary-600);
