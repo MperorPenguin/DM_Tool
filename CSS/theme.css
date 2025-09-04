@@ -1,38 +1,48 @@
 /* ===================================================================
    DocumentsTabletopPals · Central Theme (Base Alpha)
-   Visuals + global containment/sizing + mobile polish
+   Visuals + containment + mobile polish
    =================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
 /* -------------------- Design Tokens -------------------- */
 :root{
+  /* Brand */
   --color-primary:     #84dd63;
   --color-primary-600: #6baa75;
   --color-primary-700: #4a7b57;
 
+  /* Surfaces & text */
   --color-surface-1:   #121416;
   --color-surface-2:   #1b2024;
   --color-border:      #30363d;
   --color-text:        #eaf2ec;
   --input-bg:          #0f1517;
 
+  /* Typography */
   --font-body: Poppins, system-ui, -apple-system, "Segoe UI", Roboto, Arimo, Helvetica, Arial, sans-serif;
 
-  /* Shared control dimensions (visual baselines) */
+  /* Shared control dims (visual baselines) */
   --control-height: 2.75rem;
   --control-radius: 12px;
   --control-pad-x: .9rem;
   --control-pad-y: .55rem;
 
-  /* Grid gap defaults (modules can override locally) */
+  /* Layout spacing helpers */
+  --container-pad: 16px;
   --grid-gap: 1rem;
   --grid-gap-compact: .75rem;
+
+  /* Mobile safe areas (iOS notch) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 
   color-scheme: dark;
 }
 
-/* Global body font */
+/* Global font */
 html body { font-family: var(--font-body) !important; }
 
 /* Accessible focus ring */
@@ -46,19 +56,14 @@ html body { font-family: var(--font-body) !important; }
 /* 2) Page background & text */
 html, body { background: var(--color-surface-1); color: var(--color-text); }
 
-/* 3) Cards/panels baseline */
+/* 3) Cards/panels baseline & containment */
 .card, .panel { background: var(--color-surface-2); border: 1px solid var(--color-border); }
-
-/* 4) Anything inside a card should not overflow its area */
 .card * { max-width: 100%; }
-.card img, .card svg, .card video, .card canvas, .card iframe {
-  display: block; max-width: 100%; height: auto;
-}
-/* Clip runaway content, but prefer not to clip focus rings */
+.card img, .card svg, .card video, .card canvas, .card iframe { display:block; max-width:100%; height:auto; }
 .card { overflow: hidden; }
 @supports (overflow: clip) { .card { overflow: clip; } }
 
-/* 5) Common wrappers let children shrink instead of overflow */
+/* 4) Common wrappers let children shrink instead of overflow */
 .grid > *, .row > *, .actions > *, .bar > *, header .actions > * { min-width: 0; max-width: 100%; }
 
 /* -------------------- Controls (platform-wide visuals & sizing) -------------------- */
@@ -73,15 +78,10 @@ input, select, textarea {
   box-shadow: none;
   background-clip: padding-box;
 }
-.field > input, .field > select, .field > textarea {
-  width: 100%; max-width: 100%; min-width: 0;
-}
+.field > input, .field > select, .field > textarea { width:100%; max-width:100%; min-width:0; }
+input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
 
-input::placeholder, textarea::placeholder {
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
-}
-
-select {
+select{
   padding-right: 2.25rem;
   appearance: none; -webkit-appearance: none; -moz-appearance: none;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -98,15 +98,15 @@ input:hover, select:hover, textarea:hover { border-color: var(--color-primary-60
 input:active, select:active, textarea:active { border-color: var(--color-primary-700); }
 
 /* Buttons (center label, ellipsis; no overflow) */
-.btn, button {
+.btn, button{
   background: var(--color-primary);
   color: #0b0b0b;
   border: 1px solid transparent;
   border-radius: 10px;
 
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 0; max-width: 100%;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:0; max-width:100%;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   height: var(--control-height);
 }
 .btn:hover   { background: var(--color-primary-600); }
@@ -114,22 +114,16 @@ input:active, select:active, textarea:active { border-color: var(--color-primary
 .btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 a.btn { text-decoration: none; }
 
-.btn.ghost {
-  background: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-}
+.btn.ghost { background:transparent; color:var(--color-primary); border:1px solid var(--color-primary); }
 .btn.ghost:hover { background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
 
 /* Actions rows never overlap; wrap when needed */
-.actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.actions { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
 
 /* -------------------- Grid utilities (safe minmax fix) -------------------- */
-/* NB: These are gentle defaults. Module CSS can still override them. */
-.grid { display: grid; gap: var(--grid-gap); }
+.grid { display:grid; gap: var(--grid-gap); }
 .grid.tight { gap: .5rem; }
 .grid.compact { gap: var(--grid-gap-compact); }
-
 .grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
 .grid.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
 .grid.cols-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
@@ -138,47 +132,116 @@ a.btn { text-decoration: none; }
 
 /* -------------------- Header / Tabs – mobile polish -------------------- */
 
-/* Sticky header for better mobile UX */
-header.wrap.bar { position: sticky; top: 0; z-index: 50; background: var(--color-surface-1); }
+/* Sticky header that respects iOS safe area */
+header.wrap.bar {
+  position: sticky; top: calc(0px + var(--safe-top)); z-index: 50;
+  background: var(--color-surface-1);
+  padding-left: calc(var(--container-pad) + var(--safe-left));
+  padding-right: calc(var(--container-pad) + var(--safe-right));
+}
 
-/* Tabs become a swipeable row on small screens (no HTML changes needed) */
+/* Tabs become a swipeable row on small screens */
+nav.tabs {
+  display:flex; gap:.5rem; flex-wrap:wrap;
+}
 @media (max-width: 900px) {
   nav.tabs {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
+    display:block;
+    overflow-x:auto;
+    white-space:nowrap;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    padding-bottom: .25rem;
+    padding-bottom:.25rem;
     mask-image: linear-gradient(90deg, transparent 0, #000 1rem, #000 calc(100% - 1rem), transparent 100%);
   }
   nav.tabs .tab {
-    display: inline-flex;
-    margin-right: .5rem;
+    display:inline-flex;
+    margin-right:.5rem;
     scroll-snap-align: start;
   }
 }
 
-/* -------------------- Optional burger (CSS-only styling)
-   To activate: add <button class="burger btn ghost" aria-expanded="false"></button>
-   near your nav in the header. Toggling aria-expanded=true can be done by tiny JS,
-   but the styles below are ready and harmless if the button doesn’t exist. */
-.burger {
+/* -------------------- Optional burger (CSS-ready)
+   Add: <button class="burger btn ghost" aria-expanded="false" aria-label="Menu"></button>
+   near your header actions. This CSS animates a slide-down tabs drawer on mobile. */
+
+.burger{
   --burger-size: 24px;
   position: relative;
   width: calc(var(--burger-size) + 18px);
   padding-inline: .75rem;
+  display:none; /* hidden on wide screens by default */
 }
-.burger::before, .burger::after, .burger span {
-  content: ""; display: block; height: 2px; background: currentColor; border-radius: 2px;
+.burger::before, .burger::after, .burger span{
+  content:""; display:block; height:2px; background: currentColor; border-radius:2px;
 }
-.burger::before { width: var(--burger-size); margin: 6px 0 4px; }
-.burger span    { width: var(--burger-size); }
-.burger::after  { width: var(--burger-size); margin: 4px 0 6px; }
+.burger::before{ width:var(--burger-size); margin:6px 0 4px }
+.burger span   { width:var(--burger-size) }
+.burger::after { width:var(--burger-size); margin:4px 0 6px }
 
-@media (min-width: 901px) { .burger { display: none; } }
-/* If you later add a class on <body> like .nav-collapsed, you can hide tabs */
-/* body.nav-collapsed nav.tabs { display: none; } */
+@media (max-width: 900px) {
+  .burger{ display:inline-flex; }
+  /* Off-canvas-ish tabs: collapsed by default on small screens */
+  header.wrap.bar nav.tabs {
+    position: fixed;
+    left: 0; right: 0;
+    top: calc(56px + var(--safe-top));      /* typical header height */
+    max-height: 60vh; overflow-y: auto;
+    background: var(--color-surface-1);
+    border-bottom: 1px solid var(--color-border);
+    padding: .5rem calc(var(--container-pad) + var(--safe-right)) .75rem calc(var(--container-pad) + var(--safe-left));
+    transform: translateY(-110%);
+    transition: transform .2s ease;
+  }
+  /* Open state: modern browsers using :has() */
+  @supports selector(header:has(.burger)) {
+    header.wrap.bar:has(.burger[aria-expanded="true"]) nav.tabs { transform: translateY(0); }
+  }
+  /* Open state fallback: add body.nav-open via tiny JS (below) */
+  body.nav-open header.wrap.bar nav.tabs { transform: translateY(0); }
+}
+
+/* -------------------- Mobile-responsive tokens -------------------- */
+
+/* Tablets / small laptops */
+@media (max-width: 1024px) {
+  :root{
+    --container-pad: 14px;
+    --grid-gap: .875rem;
+    --grid-gap-compact: .625rem;
+  }
+}
+
+/* Phones (portrait) */
+@media (max-width: 768px) {
+  :root{
+    --control-height: 3rem;
+    --control-radius: 14px;
+    --control-pad-x: 1rem;
+    --control-pad-y: .6rem;
+    --container-pad: 12px;
+  }
+  body{ font-size: clamp(15px, 3.6vw, 16.5px); }
+}
+
+/* Small phones */
+@media (max-width: 420px) {
+  :root{
+    --control-height: 3.2rem;
+    --container-pad: 10px;
+  }
+  body{ font-size: clamp(16px, 4.4vw, 17px); }
+}
+
+/* Touch comfort (coarse pointers): a tad more padding */
+@media (pointer: coarse) {
+  :root{ --control-pad-y: .7rem; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  * { animation: none !important; transition: none !important; }
+}
 
 /* -------------------- Legacy aliases (back-compat) -------------------- */
 :root{
