@@ -408,7 +408,7 @@ window.EnemyStore = window.EnemyStore || (function () {
 
   // Helpers
   const int = (v, d=0) => Number.parseInt(String(v),10) || d;
-  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v)));
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
   // Events
   byId('btn-new').addEventListener('click', () => { const e = defaultEnemy(); state.list.unshift(e); save(); edit(e.id); EnemyStore.upsert(toDMEnemy(e)); });

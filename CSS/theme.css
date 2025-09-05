@@ -1,186 +1,17 @@
-/* ===================================================================
-   DocumentsTabletopPals · Central Theme (Base Alpha)
-   Visuals + global containment/sizing + mobile polish
-   =================================================================== */
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-
-/* -------------------- Design Tokens -------------------- */
+/* ========= Base Alpha: Single Source of Truth ========= */
 :root{
-  --color-primary:     #84dd63;
-  --color-primary-600: #6baa75;
-  --color-primary-700: #4a7b57;
-
-  --color-surface-1:   #121416;
-  --color-surface-2:   #1b2024;
-  --color-border:      #30363d;
-  --color-text:        #eaf2ec;
-  --input-bg:          #0f1517;
-
+  --color-primary:     #84dd63;  /* buttons, links, focus ring */
+  --color-primary-600: #6baa75;  /* hover */
+  --color-primary-700: #4a7b57;  /* active */
+  --color-surface-1:   #121416;  /* page background */
+  --color-surface-2:   #1b2024;  /* cards/panels */
+  --color-border:      #30363d;  /* lines/borders */
+  --color-text:        #eaf2ec;  /* global text colour */
+  --input-bg:          #0f1517;  /* input background */
   --font-body: Poppins, system-ui, -apple-system, "Segoe UI", Roboto, Arimo, Helvetica, Arial, sans-serif;
-
-  /* Shared control dimensions (visual baselines) */
-  --control-height: 2.75rem;
-  --control-radius: 12px;
-  --control-pad-x: .9rem;
-  --control-pad-y: .55rem;
-
-  /* Grid gap defaults (modules can override locally) */
-  --grid-gap: 1rem;
-  --grid-gap-compact: .75rem;
-
-  color-scheme: dark;
 }
 
-/* Global body font */
-html body { font-family: var(--font-body) !important; }
-
-/* Accessible focus ring */
-:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
-
-/* -------------------- Global Safety Resets -------------------- */
-
-/* 1) Box sizing so padding/borders never push outside containers */
-*, *::before, *::after { box-sizing: border-box; }
-
-/* 2) Page background & text */
-html, body { background: var(--color-surface-1); color: var(--color-text); }
-
-/* 3) Cards/panels baseline */
-.card, .panel { background: var(--color-surface-2); border: 1px solid var(--color-border); }
-
-/* 4) Anything inside a card should not overflow its area */
-.card * { max-width: 100%; }
-.card img, .card svg, .card video, .card canvas, .card iframe {
-  display: block; max-width: 100%; height: auto;
-}
-/* Clip runaway content, but prefer not to clip focus rings */
-.card { overflow: hidden; }
-@supports (overflow: clip) { .card { overflow: clip; } }
-
-/* 5) Common wrappers let children shrink instead of overflow */
-.grid > *, .row > *, .actions > *, .bar > *, header .actions > * { min-width: 0; max-width: 100%; }
-
-/* -------------------- Controls (platform-wide visuals & sizing) -------------------- */
-
-input, select, textarea {
-  background: var(--input-bg);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: var(--control-radius);
-  height: var(--control-height);
-  padding: var(--control-pad-y) var(--control-pad-x);
-  box-shadow: none;
-  background-clip: padding-box;
-}
-.field > input, .field > select, .field > textarea {
-  width: 100%; max-width: 100%; min-width: 0;
-}
-
-input::placeholder, textarea::placeholder {
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
-}
-
-select {
-  padding-right: 2.25rem;
-  appearance: none; -webkit-appearance: none; -moz-appearance: none;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  background-image:
-    url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right .6rem center;
-  background-size: 1rem;
-}
-option, optgroup { background: var(--color-surface-2); color: var(--color-text); }
-optgroup[label] { color: color-mix(in srgb, var(--color-text) 75%, transparent); }
-
-input:hover, select:hover, textarea:hover { border-color: var(--color-primary-600); }
-input:active, select:active, textarea:active { border-color: var(--color-primary-700); }
-
-/* Buttons (center label, ellipsis; no overflow) */
-.btn, button {
-  background: var(--color-primary);
-  color: #0b0b0b;
-  border: 1px solid transparent;
-  border-radius: 10px;
-
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 0; max-width: 100%;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  height: var(--control-height);
-}
-.btn:hover   { background: var(--color-primary-600); }
-.btn:active  { background: var(--color-primary-700); }
-.btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
-a.btn { text-decoration: none; }
-
-.btn.ghost {
-  background: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-}
-.btn.ghost:hover { background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
-
-/* Actions rows never overlap; wrap when needed */
-.actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-
-/* -------------------- Grid utilities (safe minmax fix) -------------------- */
-/* NB: These are gentle defaults. Module CSS can still override them. */
-.grid { display: grid; gap: var(--grid-gap); }
-.grid.tight { gap: .5rem; }
-.grid.compact { gap: var(--grid-gap-compact); }
-
-.grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
-.grid.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
-.grid.cols-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
-.grid.cols-5 { grid-template-columns: repeat(5, minmax(0,1fr)); }
-.grid.cols-6 { grid-template-columns: repeat(6, minmax(0,1fr)); }
-
-/* -------------------- Header / Tabs – mobile polish -------------------- */
-
-/* Sticky header for better mobile UX */
-header.wrap.bar { position: sticky; top: 0; z-index: 50; background: var(--color-surface-1); }
-
-/* Tabs become a swipeable row on small screens (no HTML changes needed) */
-@media (max-width: 900px) {
-  nav.tabs {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    padding-bottom: .25rem;
-    mask-image: linear-gradient(90deg, transparent 0, #000 1rem, #000 calc(100% - 1rem), transparent 100%);
-  }
-  nav.tabs .tab {
-    display: inline-flex;
-    margin-right: .5rem;
-    scroll-snap-align: start;
-  }
-}
-
-/* -------------------- Optional burger (CSS-only styling)
-   To activate: add <button class="burger btn ghost" aria-expanded="false"></button>
-   near your nav in the header. Toggling aria-expanded=true can be done by tiny JS,
-   but the styles below are ready and harmless if the button doesn’t exist. */
-.burger {
-  --burger-size: 24px;
-  position: relative;
-  width: calc(var(--burger-size) + 18px);
-  padding-inline: .75rem;
-}
-.burger::before, .burger::after, .burger span {
-  content: ""; display: block; height: 2px; background: currentColor; border-radius: 2px;
-}
-.burger::before { width: var(--burger-size); margin: 6px 0 4px; }
-.burger span    { width: var(--burger-size); }
-.burger::after  { width: var(--burger-size); margin: 4px 0 6px; }
-
-@media (min-width: 901px) { .burger { display: none; } }
-/* If you later add a class on <body> like .nav-collapsed, you can hide tabs */
-/* body.nav-collapsed nav.tabs { display: none; } */
-
-/* -------------------- Legacy aliases (back-compat) -------------------- */
+/* Legacy aliases (older CSS still uses these) */
 :root{
   --lime-green:    var(--color-primary);
   --lime-600:      var(--color-primary-600);
@@ -190,4 +21,92 @@ header.wrap.bar { position: sticky; top: 0; z-index: 50; background: var(--color
   --border:        var(--color-border);
   --panel:         var(--color-surface-2);
   --panel-bg:      var(--color-surface-2);
+}
+
+/* ========= Globals ========= */
+html, body { background: var(--color-surface-1); color: var(--color-text); font-family: var(--font-body); }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+a { color: var(--color-primary); }
+
+/* Panels/cards */
+.card, .panel { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: 12px; }
+
+/* Inputs */
+input, select, textarea {
+  background: var(--input-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+/* ========= Buttons (primary) ========= */
+.btn, button.btn {
+  background: var(--color-primary);
+  color: #0b0b0b;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: .6rem .9rem;
+  cursor: pointer;
+  transition: background-color .12s ease, border-color .12s ease, transform .02s ease;
+}
+.btn:hover, button.btn:hover   { background: var(--color-primary-600); }
+.btn:active, button.btn:active { background: var(--color-primary-700); transform: translateY(1px); }
+.btn:focus-visible, button.btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.btn:disabled, button.btn:disabled { opacity:.55; cursor:not-allowed; }
+
+/* ========= Ghost buttons ========= */
+.btn.ghost, button.btn.ghost {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+.btn.ghost:hover, button.btn.ghost:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+.btn.ghost:active, button.btn.ghost:active {
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+/* ========= Pills / Tabs ========= */
+.pill, .tab {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: .45rem .8rem;
+  cursor: pointer;
+  transition: background-color .12s ease, border-color .12s ease, color .12s ease, transform .02s ease;
+}
+.pill:hover, .tab:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-2));
+  border-color: var(--color-primary);
+}
+.pill:active, .tab:active { transform: translateY(1px); }
+
+/* Selected state used across modules (.active class) */
+.pill.active, .tab.active, .pill[aria-selected="true"], .tab[aria-selected="true"] {
+  background: var(--color-primary);
+  color: #0b0b0b;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 35%, transparent) inset;
+}
+.pill.active::after, .tab.active::after {
+  content: " ✓";
+  font-weight: 700;
+  margin-left: .25rem;
+}
+
+/* ========= Tiles (Home / Landing) ========= */
+.tile, .tile-home-encounters, .tile-home-characters {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  transition: transform .06s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.tile:hover,
+.tile-home-encounters:hover,
+.tile-home-characters:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+  transform: translateY(-2px);
 }
