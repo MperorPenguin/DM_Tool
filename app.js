@@ -875,6 +875,111 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       }));
   }catch(err){ console.error('boot error', err); }
 });
+/* ===== DM — Enemy sync from Admin “Enemy Builder” (ADD-ONLY) ===== */
+(() => {
+  const ENEMY_DATA_KEY = 'tp_enemies_data_v1';     // array written by Admin “Publish”
+  const ENEMY_PING_KEY = 'tp_enemies_public_v1';   // {updatedAt, count}
+  const ENEMY_BC_NAME  = 'tp_enemies';             // BroadcastChannel for instant updates
+
+  function readPublishedEnemies(){
+    try {
+      const raw = localStorage.getItem(ENEMY_DATA_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  }
+
+  function senseBadges(sensesStr){
+    if(!sensesStr || typeof sensesStr !== 'string') return [];
+    const s = sensesStr.toLowerCase();
+    const found = [];
+    if (s.includes('darkvision'))  found.push('Darkvision');
+    if (s.includes('blindsight'))  found.push('Blindsight');
+    if (s.includes('tremorsense')) found.push('Tremorsense');
+    if (s.includes('truesight'))   found.push('Truesight');
+    return found;
+  }
+
+  function mapEnemyToToken(e){
+    // tokenCard expects: { id, name, cls, hp:[current,max], badges?, traits? }
+    const maxHp = (typeof e.hp === 'number' && e.hp > 0) ? e.hp : null;
+    const hpArr = maxHp ? [maxHp, maxHp] : [];
+    const badges = [];
+    if (e.cr != null && e.cr !== '') badges.push(`CR ${String(e.cr)}`);
+    if (e.ac != null && e.ac !== '') badges.push(`AC ${String(e.ac)}`);
+    if (e.type) badges.push(String(e.type)); // show creature type as a badge
+
+    // keep extra, compact
+    const traits = [
+      ...senseBadges(e.senses),
+      ...(Array.isArray(e.tags) ? e.tags.slice(0, 2) : [])
+    ];
+
+    return {
+      id: e.id || (window.crypto?.randomUUID?.() || ('e_' + Math.random().toString(36).slice(2,10))),
+      name: e.name || 'Enemy',
+      cls: 'Enemy',
+      hp: hpArr,
+      badges,
+      traits
+    };
+  }
+
+  function syncEnemiesFromStorage(){
+    const published = readPublishedEnemies();
+    const mapped = published.map(mapEnemyToToken);
+    // Replace enemies in state (add-only behavior, no other tokens touched)
+    if (window.state && window.state.tokens) {
+      window.state.tokens.enemy = mapped;
+    }
+  }
+
+  function maybeRenderEnemies(){
+    if (typeof window.renderDmPage === 'function' &&
+        window.state?.route === 'dm' &&
+        window.state?.ui?.dmTab === 'enemies') {
+      window.renderDmPage();
+    }
+  }
+
+  function syncThenRender(){
+    syncEnemiesFromStorage();
+    maybeRenderEnemies();
+  }
+
+  // Initial load
+  document.addEventListener('DOMContentLoaded', syncThenRender);
+
+  // Refresh when the DM nav is pressed (additive; original onclick still runs)
+  document.getElementById('nav-dm')?.addEventListener('click', () => {
+    // run just before/alongside nav; a second render is harmless
+    setTimeout(syncThenRender, 0);
+  });
+
+  // Live updates from Admin (another tab) — storage ping + data
+  window.addEventListener('storage', (e) => {
+    if (e && (e.key === ENEMY_DATA_KEY || e.key === ENEMY_PING_KEY)) {
+      syncThenRender();
+    }
+  });
+
+  // Instant cross-tab updates via BroadcastChannel
+  try {
+    const bc = new BroadcastChannel(ENEMY_BC_NAME);
+    bc.onmessage = () => syncThenRender();
+  } catch {}
+
+  // Also hydrate when the DM view becomes visible (no HTML changes required)
+  const dmView = document.getElementById('view-dm');
+  if (dmView) {
+    const mo = new MutationObserver(() => {
+      if (!dmView.classList.contains('hidden')) {
+        syncThenRender();
+      }
+    });
+    mo.observe(dmView, { attributes: true, attributeFilter: ['class'] });
+  }
+})();
 
 /* ========= Expose for onclicks ========= */
 window.nav=nav;
