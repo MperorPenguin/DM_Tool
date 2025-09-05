@@ -875,109 +875,195 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       }));
   }catch(err){ console.error('boot error', err); }
 });
-/* ===== DM — Enemy sync from Admin “Enemy Builder” (ADD-ONLY) ===== */
+/* ===== DM — Enemy sync from Admin “Enemy Builder” (RESILIENT ADD-ONLY) ===== */
 (() => {
-  const ENEMY_DATA_KEY = 'tp_enemies_data_v1';     // array written by Admin “Publish”
-  const ENEMY_PING_KEY = 'tp_enemies_public_v1';   // {updatedAt, count}
-  const ENEMY_BC_NAME  = 'tp_enemies';             // BroadcastChannel for instant updates
+  // Keys & channel used by Enemy Builder “Publish”
+  const ENEMY_DATA_KEYS = [
+    'tp_enemies_data_v1',          // primary (current)
+    'tp_enemies_v1',               // fallback (older)
+    'tp_encounters_enemies_v1'     // fallback (namespaced)
+  ];
+  const ENEMY_PING_KEYS = ['tp_enemies_public_v1']; // publish timestamp/count pings
+  const ENEMY_BC_NAME  = 'tp_enemies';              // BroadcastChannel name
+  const DEFAULT_ICON   = 'assets/class_icons/Enemy.svg';
 
-  function readPublishedEnemies(){
+  // ——— Helpers to find the DM view & grid (no HTML changes required)
+  function getDmRoot() {
+    return document.getElementById('view-dm')
+        || document.querySelector('[data-panel="dm"]')
+        || document.body;
+  }
+  function getEnemiesGrid() {
+    const root = getDmRoot();
+    let el = root.querySelector('#dm-enemy-grid');  // use if you ever add an id
+    if (el) return el;
+    el = root.querySelector('.dm-grid3');          // your current enemies grid
+    if (el) return el;
+    return Array.from(document.querySelectorAll('.dm-grid3'))
+      .find(e => e.offsetParent !== null) || null;
+  }
+
+  // ——— Read published enemies from storage (robust to key variations)
+  function tryParse(key) {
     try {
-      const raw = localStorage.getItem(ENEMY_DATA_KEY);
-      const arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr : [];
-    } catch { return []; }
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const val = JSON.parse(raw);
+      return Array.isArray(val) ? val : null;
+    } catch { return null; }
+  }
+  function readPublishedEnemies() {
+    for (const k of ENEMY_DATA_KEYS) {
+      const arr = tryParse(k);
+      if (arr) return arr;
+    }
+    // As last resort, scan enemy-like keys
+    try {
+      for (const k of Object.keys(localStorage)) {
+        if (/enemy/i.test(k) || /enemies/i.test(k)) {
+          const arr = tryParse(k);
+          if (arr) return arr;
+        }
+      }
+    } catch {}
+    return [];
   }
 
-  function senseBadges(sensesStr){
-    if(!sensesStr || typeof sensesStr !== 'string') return [];
-    const s = sensesStr.toLowerCase();
-    const found = [];
-    if (s.includes('darkvision'))  found.push('Darkvision');
-    if (s.includes('blindsight'))  found.push('Blindsight');
-    if (s.includes('tremorsense')) found.push('Tremorsense');
-    if (s.includes('truesight'))   found.push('Truesight');
-    return found;
+  // ——— Mapping to your token shape used by renderDmPage/tokenCard
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const coalesce = (...vals) => vals.find(v => v !== undefined && v !== null && v !== '');
+
+  function senseBadges(s) {
+    if (!s || typeof s !== 'string') return [];
+    const t = s.toLowerCase();
+    const out = [];
+    if (t.includes('darkvision')) out.push('Darkvision');
+    if (t.includes('blindsight')) out.push('Blindsight');
+    if (t.includes('tremorsense')) out.push('Tremorsense');
+    if (t.includes('truesight'))  out.push('Truesight');
+    return out;
   }
 
-  function mapEnemyToToken(e){
-    // tokenCard expects: { id, name, cls, hp:[current,max], badges?, traits? }
-    const maxHp = (typeof e.hp === 'number' && e.hp > 0) ? e.hp : null;
-    const hpArr = maxHp ? [maxHp, maxHp] : [];
+  function toToken(e) {
+    const id  = e.id || (crypto?.randomUUID?.() || ('e_' + Math.random().toString(36).slice(2,10)));
+    const hpMax = (typeof e.hp === 'number' && e.hp>0) ? e.hp : coalesce(e.hp?.max, e.hpMax, null);
+    const hpCur = coalesce(e.hp?.current, e.hpCurrent, hpMax, null);
+    const hpArr = hpMax ? [hpCur ?? hpMax, hpMax] : null;
+
     const badges = [];
     if (e.cr != null && e.cr !== '') badges.push(`CR ${String(e.cr)}`);
     if (e.ac != null && e.ac !== '') badges.push(`AC ${String(e.ac)}`);
-    if (e.type) badges.push(String(e.type)); // show creature type as a badge
+    if (e.type) badges.push(String(e.type));
 
-    // keep extra, compact
     const traits = [
-      ...senseBadges(e.senses),
-      ...(Array.isArray(e.tags) ? e.tags.slice(0, 2) : [])
+      ...senseBadges(e.senses || ''),
+      ...(Array.isArray(e.tags) ? e.tags.slice(0,2) : [])
     ];
 
     return {
-      id: e.id || (window.crypto?.randomUUID?.() || ('e_' + Math.random().toString(36).slice(2,10))),
+      id,
       name: e.name || 'Enemy',
-      cls: 'Enemy',
-      hp: hpArr,
+      cls: 'Enemy',           // ensures tokenCard picks Enemy.svg
+      hp: hpArr || undefined, // tokenCard handles undefined gracefully
       badges,
       traits
     };
   }
 
-  function syncEnemiesFromStorage(){
-    const published = readPublishedEnemies();
-    const mapped = published.map(mapEnemyToToken);
-    // Replace enemies in state (add-only behavior, no other tokens touched)
+  // ——— Sync into app state (what your Enemies tab consumes)
+  function syncEnemiesIntoState(list) {
     if (window.state && window.state.tokens) {
-      window.state.tokens.enemy = mapped;
+      window.state.tokens.enemy = list;
     }
   }
 
-  function maybeRenderEnemies(){
-    if (typeof window.renderDmPage === 'function' &&
-        window.state?.route === 'dm' &&
-        window.state?.ui?.dmTab === 'enemies') {
-      window.renderDmPage();
+  // ——— Optional DOM fallback (only used if we can’t/won’t call renderDmPage)
+  function cardHTML(t) {
+    const hpBadge = (t.hp && t.hp.length === 2)
+      ? `<span class="badge">HP ${esc(t.hp[0])}/${esc(t.hp[1])}</span>` : '';
+    const moreBadges  = (t.badges || []).map(b => `<span class="badge">${esc(b)}</span>`).join('');
+    const traitBadges = (t.traits || []).map(b => `<span class="badge">${esc(b)}</span>`).join('');
+    return `
+      <div class="dm-character-box" data-id="${esc(t.id)}">
+        <div class="dm-card" onclick="selectFromPanel && selectFromPanel('enemy','${esc(t.id)}')">
+          <div class="avatar"><img src="${DEFAULT_ICON}" alt=""></div>
+          <div class="name">${esc(t.name)}</div>
+          <div class="badges">
+            <span class="badge">Enemy</span>
+            ${hpBadge}${moreBadges}${traitBadges}
+          </div>
+        </div>
+        <div class="dm-actions">
+          <button class="dm-title-btn short adv" title="Advantage" onclick="quickAdvFor && quickAdvFor('enemy','${esc(t.id)}')">A</button>
+          <button class="dm-title-btn short dis"  title="Disadvantage" onclick="quickDisFor && quickDisFor('enemy','${esc(t.id)}')">D</button>
+        </div>
+      </div>`;
+  }
+
+  let lastSig = '';
+  function hydrateEnemies() {
+    const published = readPublishedEnemies();
+    const list = published.map(toToken);
+
+    // 1) update app state (your renderer consumes this)
+    syncEnemiesIntoState(list);
+
+    // 2) if we’re on DM→Enemies and renderer exists, just render normally
+    const inDmEnemies = (window.state?.route === 'dm' && window.state?.ui?.dmTab === 'enemies');
+    if (inDmEnemies && typeof window.renderDmPage === 'function') {
+      const sig = JSON.stringify(list.map(e => [e.id, e.name, e.badges?.join('|'), e.traits?.join('|'), e.hp?.join('/')]));
+      if (sig !== lastSig) {
+        lastSig = sig;
+        window.renderDmPage();
+      }
+      return;
     }
+
+    // 3) fallback DOM render if needed (no HTML edits required)
+    const grid = getEnemiesGrid();
+    if (!grid) return;
+    const sig = JSON.stringify(list.map(e => [e.id, e.name, e.badges?.join('|'), e.traits?.join('|'), e.hp?.join('/')]));
+    if (sig === lastSig) return;
+    lastSig = sig;
+    grid.innerHTML = list.map(cardHTML).join('');
   }
 
-  function syncThenRender(){
-    syncEnemiesFromStorage();
-    maybeRenderEnemies();
-  }
+  const hydrateSoon = () => setTimeout(hydrateEnemies, 0);
 
-  // Initial load
-  document.addEventListener('DOMContentLoaded', syncThenRender);
+  // ——— Event wiring (load, tab switches, publishes)
+  document.addEventListener('DOMContentLoaded', hydrateSoon);
 
-  // Refresh when the DM nav is pressed (additive; original onclick still runs)
-  document.getElementById('nav-dm')?.addEventListener('click', () => {
-    // run just before/alongside nav; a second render is harmless
-    setTimeout(syncThenRender, 0);
-  });
+  // DM nav clicked
+  document.getElementById('nav-dm')?.addEventListener('click', hydrateSoon);
 
-  // Live updates from Admin (another tab) — storage ping + data
+  // Enemies sub-tab clicked (inline onclick uses setDmTab('enemies'))
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.dm-tab');
+    if (!btn) return;
+    const onclk = btn.getAttribute('onclick') || '';
+    const label = (btn.textContent || '').trim().toLowerCase();
+    if (onclk.includes("setDmTab('enemies')") || label === 'enemies') {
+      hydrateSoon();
+    }
+  }, true);
+
+  // Storage ping/data when Admin publishes
   window.addEventListener('storage', (e) => {
-    if (e && (e.key === ENEMY_DATA_KEY || e.key === ENEMY_PING_KEY)) {
-      syncThenRender();
-    }
+    if (!e) return;
+    if (ENEMY_DATA_KEYS.includes(e.key) || ENEMY_PING_KEYS.includes(e.key)) hydrateSoon();
   });
 
-  // Instant cross-tab updates via BroadcastChannel
+  // Instant cross-tab updates
   try {
     const bc = new BroadcastChannel(ENEMY_BC_NAME);
-    bc.onmessage = () => syncThenRender();
+    bc.onmessage = hydrateSoon;
   } catch {}
 
-  // Also hydrate when the DM view becomes visible (no HTML changes required)
-  const dmView = document.getElementById('view-dm');
-  if (dmView) {
-    const mo = new MutationObserver(() => {
-      if (!dmView.classList.contains('hidden')) {
-        syncThenRender();
-      }
-    });
-    mo.observe(dmView, { attributes: true, attributeFilter: ['class'] });
+  // Re-hydrate when DM view appears/rebuilds
+  const dmRoot = getDmRoot();
+  if (dmRoot) {
+    const mo = new MutationObserver(hydrateSoon);
+    mo.observe(dmRoot, { attributes: true, subtree: true, childList: true });
   }
 })();
 
