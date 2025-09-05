@@ -3,90 +3,6 @@
 //   'tp_bestiary_v1'       (authoring data, admin-only)
 //   'tp_enemies_data_v1'   (published minimal array for Encounters)
 //   'tp_enemies_public_v1' (ping for cross-tab updates)
-//
-// + DM Panels Sync (NEW):
-//   Shared store 'tp_dm_enemies' used by DM Panels → Enemies tab
-//   via EnemyStore.* API below. No HTML changes required.
-
-// ---------- EnemyStore: shared localStorage + live sync (DM Panels) ----------
-window.EnemyStore = window.EnemyStore || (function () {
-  const KEY = 'tp_dm_enemies';
-  const VERSION = 1;
-
-  const uid = () => (crypto?.randomUUID?.() || `e_${Date.now()}_${Math.random().toString(36).slice(2,7)}`);
-  const now  = () => Date.now();
-
-  function _readRaw() {
-    try { return JSON.parse(localStorage.getItem(KEY)) || { version: VERSION, items: [] }; }
-    catch { return { version: VERSION, items: [] }; }
-  }
-
-  function _writeRaw(payload) {
-    localStorage.setItem(KEY, JSON.stringify(payload));
-    _broadcast();
-  }
-
-  function read() {
-    const { items } = _readRaw();
-    return Array.isArray(items) ? items : [];
-  }
-
-  function write(list) {
-    const payload = { version: VERSION, items: list || [] };
-    _writeRaw(payload);
-  }
-
-  function upsert(enemy) {
-    const list = read();
-    if (!enemy.id) enemy.id = uid();
-    enemy.updatedAt = now();
-
-    const idx = list.findIndex(e => e.id === enemy.id);
-    if (idx >= 0) list[idx] = { ...list[idx], ...enemy };
-    else list.unshift(enemy);
-
-    write(list);
-    return enemy.id;
-  }
-
-  function remove(id) {
-    write(read().filter(e => e.id !== id));
-  }
-
-  // Live sync across tabs/windows
-  let bc = null;
-  try { bc = new BroadcastChannel('tp_dm_enemies_channel'); } catch {}
-
-  const listeners = new Set();
-
-  function subscribe(fn) {
-    listeners.add(fn);
-    return () => listeners.delete(fn);
-  }
-
-  function _notify() {
-    for (const fn of listeners) try { fn(read()); } catch {}
-  }
-
-  function _broadcast() {
-    _notify();
-    if (bc) bc.postMessage({ type: 'updated' });
-  }
-
-  if (bc) {
-    bc.onmessage = (evt) => {
-      if (evt?.data?.type === 'updated') _notify();
-    };
-  }
-
-  window.addEventListener('storage', (evt) => {
-    if (evt.key === KEY) _notify();
-  });
-
-  return { KEY, read, write, upsert, remove, subscribe };
-})();
-
-// --------------------------------------------------------------------------------
 
 (() => {
   const BESTIARY_KEY = 'tp_bestiary_v1';
@@ -105,35 +21,6 @@ window.EnemyStore = window.EnemyStore || (function () {
   const slug = s => (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
 
   const state = { list: [], filtered: [], currentId: null };
-
-  // --- NORMALISER FOR DM PANELS STORE (keeps shapes consistent) ---
-  function toDMEnemy(e){
-    return {
-      id: e.id,
-      slug: slug(e.name),
-      name: e.name,
-      size: e.size,
-      type: e.type,
-      alignment: e.alignment,
-      cr: e.cr,                   // string like "1/4"
-      xp: CR_XP[e.cr] ?? 0,
-      ac: e.ac,
-      hp: e.hp,
-      speed: e.speed,
-      abilities: e.abilities,     // {str,dex,con,int,wis,cha}
-      skills: e.skills,
-      senses: e.senses,
-      languages: e.languages,
-      traits: e.traits,
-      actions: e.actions,
-      reactions: e.reactions,
-      legendary: e.legendary,
-      tags: e.tags,
-      source: e.source,
-      notes: e.notes,
-      updatedAt: e.updatedAt ?? Date.now()
-    };
-  }
 
   function defaultEnemy(){
     return {
@@ -156,8 +43,7 @@ window.EnemyStore = window.EnemyStore || (function () {
       legendary: '',
       tags: ['goblin','skirmisher','ranged'],
       source: 'Homebrew',
-      notes: '',
-      updatedAt: Date.now() // NEW
+      notes: ''
     };
   }
 
@@ -166,24 +52,12 @@ window.EnemyStore = window.EnemyStore || (function () {
     try { state.list = JSON.parse(localStorage.getItem(BESTIARY_KEY) || '[]'); }
     catch { state.list = []; }
     if(!Array.isArray(state.list)) state.list = [];
-
-    // Ensure updatedAt exists on legacy items
-    let touched = false;
-    state.list.forEach(e => { if (!e.updatedAt) { e.updatedAt = Date.now(); touched = true; } });
-    if (touched) localStorage.setItem(BESTIARY_KEY, JSON.stringify(state.list));
-
     state.filtered = state.list.slice();
     renderList();
-
-    // Mirror full set to DM Panels store on load (keeps Enemies tab populated)
-    EnemyStore.write(state.list.map(toDMEnemy));
   }
   function save(){
     localStorage.setItem(BESTIARY_KEY, JSON.stringify(state.list));
     filterAndRender();
-
-    // Keep DM Panels store in sync whenever we save
-    EnemyStore.write(state.list.map(toDMEnemy));
   }
 
   // Filter/List
@@ -269,23 +143,13 @@ window.EnemyStore = window.EnemyStore || (function () {
     };
   }
   function upsertEnemy(data){
-    data.updatedAt = Date.now(); // NEW: keep per-item timestamp current
-
     const idx = state.list.findIndex(x=>x.id===data.id);
     if(idx === -1) state.list.unshift(data); else state.list[idx] = data;
-
-    // Write-through to DM Panels shared store
-    EnemyStore.upsert(toDMEnemy(data));
-
     state.currentId = data.id; save();
   }
   function removeEnemy(id){
     const idx = state.list.findIndex(x=>x.id===id);
     if(idx !== -1){ state.list.splice(idx,1); save(); }
-
-    // Reflect deletion in DM Panels
-    EnemyStore.remove(id);
-
     if(state.currentId === id) state.currentId = null;
     if(state.list[0]) edit(state.list[0].id);
   }
@@ -293,13 +157,7 @@ window.EnemyStore = window.EnemyStore || (function () {
     const e = state.list.find(x=>x.id===id); if(!e) return;
     const copy = JSON.parse(JSON.stringify(e));
     copy.id = crypto.randomUUID(); copy.name = e.name + ' (Copy)';
-    copy.updatedAt = Date.now();
-    state.list.unshift(copy);
-
-    // Write-through for the duplicate
-    EnemyStore.upsert(toDMEnemy(copy));
-
-    save(); edit(copy.id);
+    state.list.unshift(copy); save(); edit(copy.id);
   }
 
   // Validation (blocks publish with precise reasons)
@@ -336,8 +194,7 @@ window.EnemyStore = window.EnemyStore || (function () {
       id:e.id, slug:slug(e.name), name:e.name, size:e.size, type:e.type, alignment:e.alignment,
       cr:e.cr, xp:CR_XP[e.cr] ?? 0, ac:e.ac, hp:e.hp, speed:e.speed, abilities:e.abilities,
       skills:e.skills, senses:e.senses, languages:e.languages, traits:e.traits, actions:e.actions,
-      reactions:e.reactions, legendary:e.legendary, tags:e.tags, source:e.source,
-      updatedAt: e.updatedAt ?? Date.now()
+      reactions:e.reactions, legendary:e.legendary, tags:e.tags, source:e.source
     }));
     const { ok, valid, errors, warnings } = validateArray(mini);
     if(!ok){
@@ -347,14 +204,10 @@ window.EnemyStore = window.EnemyStore || (function () {
     }
     localStorage.setItem(PUBLISH_DATA, JSON.stringify(valid));
     localStorage.setItem(PUBLISH_PING, JSON.stringify({ updatedAt: Date.now(), count: valid.length }));
-    // Broadcast for instant sync to legacy listeners
+    // Broadcast for instant sync
     try { const bc = new BroadcastChannel('tp_enemies'); bc.postMessage({ type:'publish', updatedAt:Date.now(), count: valid.length }); bc.close?.(); } catch {}
-
-    // ALSO: ensure DM Panels shared store is fully aligned after publish (optional but nice)
-    EnemyStore.write(valid.map(toDMEnemy));
-
     if(warnings.length){ console.group('[Enemy Admin] Publish warnings'); warnings.forEach(w=>console.warn(w)); console.groupEnd(); }
-    alert(`Published ${valid.length} enemies to Encounters & synced DM Panels.`);
+    alert(`Published ${valid.length} enemies to Encounters.`);
   }
   function exportJSON(){
     const blob = new Blob([JSON.stringify(state.list, null, 2)], {type:'application/json'});
@@ -369,12 +222,8 @@ window.EnemyStore = window.EnemyStore || (function () {
       try{
         const arr = JSON.parse(String(reader.result));
         if(Array.isArray(arr)){
-          const cleaned = arr.map(e => ({...defaultEnemy(), ...e, id: e.id || crypto.randomUUID(), updatedAt: Date.now()}));
+          const cleaned = arr.map(e => ({...defaultEnemy(), ...e, id: e.id || crypto.randomUUID()}));
           state.list = cleaned; save(); if(state.list[0]) edit(state.list[0].id);
-
-          // Mirror import to DM Panels
-          EnemyStore.write(state.list.map(toDMEnemy));
-
           alert(`Imported ${state.list.length} enemies.`);
         } else throw 0;
       } catch { alert('Invalid JSON file. Expecting an array of enemies.'); }
@@ -399,11 +248,8 @@ window.EnemyStore = window.EnemyStore || (function () {
         skills:'Intimidation +2', senses:'Darkvision 60 ft., Passive Perception 10',
         languages:'Common, Orc', traits:'Aggressive.', actions:'Greataxe +5; 1d12+3 slashing.', tags:['orc','brute'] },
     ];
-    state.list = templates.map(t => ({...defaultEnemy(), ...t, id: crypto.randomUUID(), updatedAt: Date.now()}));
+    state.list = templates.map(t => ({...defaultEnemy(), ...t, id: crypto.randomUUID()}));
     save(); edit(state.list[0].id);
-
-    // Mirror to DM Panels
-    EnemyStore.write(state.list.map(toDMEnemy));
   }
 
   // Helpers
@@ -411,7 +257,7 @@ window.EnemyStore = window.EnemyStore || (function () {
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
   // Events
-  byId('btn-new').addEventListener('click', () => { const e = defaultEnemy(); state.list.unshift(e); save(); edit(e.id); EnemyStore.upsert(toDMEnemy(e)); });
+  byId('btn-new').addEventListener('click', () => { const e = defaultEnemy(); state.list.unshift(e); save(); edit(e.id); });
   byId('btn-bulk').addEventListener('click', quickGenerate);
   byId('btn-export').addEventListener('click', exportJSON);
   byId('btn-import').addEventListener('click', () => byId('file-import').click());
@@ -427,6 +273,5 @@ window.EnemyStore = window.EnemyStore || (function () {
 
   // Init
   load();
-  if(!state.list.length){ const e = defaultEnemy(); state.list=[e]; save(); edit(e.id); EnemyStore.upsert(toDMEnemy(e)); }
-  else edit(state.list[0].id);
+  if(!state.list.length){ const e = defaultEnemy(); state.list=[e]; save(); edit(e.id); } else edit(state.list[0].id);
 })();
