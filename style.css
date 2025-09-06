@@ -361,51 +361,100 @@ button, .btn{ font: inherit; touch-action: manipulation; }
 
 /* (Removed font overrides like "Arvo" and ".use-aptos") */
 
-/* === Feedback Modal layout hardening === */
+/* === Feedback Modal (TabletopPals) — v2 ================================== */
+/* Floating action button (optional; also works with [data-action="open-feedback"]) */
+.feedback-fab{
+  position: fixed; right: 20px; bottom: 20px; z-index: 9999;
+  background: var(--color-primary); color:#0b0b0b; border:1px solid transparent;
+  border-radius: 999px; padding: 12px 16px; font-weight:600;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+}
+.feedback-fab:hover{ background: var(--color-primary-600); }
+.feedback-fab:active{ background: var(--color-primary-700); }
+.feedback-fab:focus-visible{ outline:2px solid var(--color-primary); outline-offset:2px; }
 
-/* Make the two-up rows robust and prevent overflow pushing columns */
-.feedback-grid { display: grid; gap: 12px; }
-.feedback-grid.two { grid-template-columns: 1fr; }
+/* Dialog shell */
+#tp-feedback-modal{
+  width: min(720px, 92vw); max-height: 92vh; padding:0;
+  border:1px solid var(--color-border); border-radius:14px;
+  background: var(--color-surface-2); color: var(--color-text);
+}
+#tp-feedback-modal::backdrop{ background: rgba(0,0,0,.55); }
+
+.feedback-body{ padding: 0 0 16px 0; }
+.feedback-intro{ margin:0; padding:12px 20px 4px 20px; opacity:.9; }
+
+/* Header row: title | Close */
+.feedback-head{
+  display:grid; grid-template-columns: 1fr auto; align-items:center;
+  gap:12px; padding:16px 20px; border-bottom:1px solid var(--color-border);
+}
+.feedback-head h2{ margin:0; }
+
+/* Close button neutral (don’t inherit global `button` styles) */
+button.feedback-close{
+  all: unset; display:inline-block; padding:8px 10px;
+  border:1px solid var(--color-border); border-radius:10px;
+  background:transparent; color:var(--color-text); line-height:1; cursor:pointer;
+}
+button.feedback-close:hover{
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+button.feedback-close:active{
+  background: color-mix(in srgb, var(--color-text) 16%, transparent);
+}
+button.feedback-close:focus-visible{
+  outline:2px solid var(--color-primary); outline-offset:2px;
+}
+
+/* Form layout */
+.feedback-grid{ display:grid; gap:12px; padding: 0 20px; }
+.feedback-grid.two{ grid-template-columns: 1fr; }
 @media (min-width: 720px){
-  .feedback-grid.two { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .feedback-grid.two{ grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+}
+label.feedback-field, div.feedback-field{
+  display:flex !important; flex-direction:column; align-items:stretch;
+  gap:6px; margin:12px 0; min-width:0;
+}
+.feedback-field > span{ font-weight:600; }
+.feedback-helper{ opacity:.75; }
+
+/* Controls */
+.feedback-input, .feedback-textarea, .feedback-select{
+  width:100%; max-width:100%; box-sizing:border-box;
+  background: var(--input-bg); color: var(--color-text);
+  border:1px solid var(--color-border); border-radius:10px; padding:10px 12px;
+}
+.feedback-textarea{ resize: vertical; min-height:120px; }
+.feedback-checkbox{ display:grid; grid-template-columns: 22px 1fr; gap:8px; align-items:start; padding: 0 20px; }
+
+/* Severity pills */
+.feedback-rating{ display:flex; gap:8px; flex-wrap:wrap; }
+.feedback-rating input{ position:absolute; opacity:0; }
+.feedback-rating label{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:40px; height:40px; border-radius:10px;
+  border:1px solid var(--color-border); background:var(--input-bg);
+  cursor:pointer; user-select:none; font-weight:600;
+}
+.feedback-rating input:focus-visible + span,
+.feedback-rating label:focus-visible{ outline:2px solid var(--color-primary); outline-offset:2px; }
+.feedback-rating input:checked + span{
+  background: var(--color-primary); color:#0b0b0b; border-color:transparent; padding:6px 10px;
 }
 
-/* Field wrapper: use column flex so injected icons / extensions can't break grid */
-label.feedback-field,
-div.feedback-field {
-  display: flex !important;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-  margin: 12px 0;
-  min-width: 0;
-}
+/* Actions + status */
+.feedback-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; padding: 0 20px; }
+.feedback-status{ min-height:1.5em; margin:10px 20px 0 20px; }
+.feedback-status.success{ color:#8ef0a6; }
+.feedback-status.error{ color:#ffb3b3; }
 
-/* Ensure controls fill the width and never overflow their cell */
-.feedback-input,
-.feedback-textarea,
-.feedback-select {
-  width: 100%;
-  max-width: 100%;
-  background: var(--input-bg);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  box-sizing: border-box;
-}
+/* Hide the honeypot completely so it can't overlay anything */
+.feedback-hp{ display:none !important; }
 
-/* Textarea size and wrapping */
-.feedback-textarea { resize: vertical; min-height: 120px; }
+/* Small ghost button variant (alias) */
+.btn.small{ padding:6px 10px; font-size:.95rem; }
 
-/* Rating pills: wrap on small widths so they don't crush columns */
-.feedback-rating { display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* Password manager overlays sometimes inject extra elements after inputs.
-   Keep layout stable if those appear. */
-label.feedback-field > [data-np-uid],
-label.feedback-field > nordpass-icon,
-div.feedback-field > [data-np-uid],
-div.feedback-field > nordpass-icon {
-  align-self: flex-end; /* park them without breaking flow */
-}
+/* Disable style for the gated submit */
+.feedback-actions .btn[disabled]{ opacity:.55; cursor:not-allowed; filter:grayscale(.15); }

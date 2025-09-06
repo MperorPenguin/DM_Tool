@@ -1067,27 +1067,71 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   }
 })();
 
-/* ========================================================================
-   TabletopPals — Feedback Modal (self-contained)
+========================================================================
+   TabletopPals — Feedback Modal (self-contained) — v2
    Paste at END OF FILE in DocumentsTabletopPals/app.js
    ====================================================================== */
 (() => {
-  // --- CONFIG ----------------------------------------------------------------
-  // Replace with your Formspree endpoint (e.g., https://formspree.io/f/abcdxyz)
-  const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynlj";
-  const FALLBACK_EMAIL     = "matthewmarais14@gmail.com";          // mailto fallback
-  const QUEUE_KEY          = "tp_feedback_queue_v1";     // offline queue
+  // --- CONFIG ---------------------------------------------------------------
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/REPLACE_ME"; // <- put yours
+  const FALLBACK_EMAIL     = "you@example.com";                    // used in mailto
+  const QUEUE_KEY          = "tp_feedback_queue_v1";
   const APP_VERSION_LABEL  = "DocumentsTabletopPals — Major Alpha";
 
-  // --- UTIL ------------------------------------------------------------------
-  const $ = (sel, root=document) => root.querySelector(sel);
+  // --- UTIL -----------------------------------------------------------------
+  const $  = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  function setStatus(msg, kind=""){ const el=$("#fb-status"); if(el){ el.textContent=msg; el.className=`feedback-status ${kind}`; } }
+  function collectMeta(){
+    $("#fb-meta-ua").value  = navigator.userAgent || "";
+    $("#fb-meta-vp").value  = `${window.innerWidth}x${window.innerHeight}`;
+    try { $("#fb-meta-tz").value = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch { $("#fb-meta-tz").value = ""; }
+    $("#fb-meta-url").value = location.href;
+    $("#fb-meta-app").value = APP_VERSION_LABEL;
+  }
+  function serializeForm(form){
+    const data = new FormData(form); const obj = {};
+    for(const [k,v] of data.entries()){ if(k==="company" && !v) continue; obj[k]=v; }
+    return obj;
+  }
+  function queuePush(payload){
+    const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
+    q.push({ payload, t: Date.now() });
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+  }
+  async function attemptSyncQueue(){
+    const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
+    if(!q.length) return;
+    const remaining = [];
+    for(const item of q){ try { await sendPayload(item.payload); } catch { remaining.push(item); } }
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
+  }
+  async function sendPayload(payload){
+    if(!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes("REPLACE_ME")) throw new Error("Endpoint not configured");
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method:"POST", headers:{ "Content-Type":"application/json", "Accept":"application/json" }, body: JSON.stringify(payload)
+    });
+    if(!res.ok){ const txt = await res.text().catch(()=>res.statusText); throw new Error(`Submit failed: ${res.status} ${txt}`); }
+    return res.json().catch(()=> ({}));
+  }
+  function buildMailtoURL(payload){
+    const subject = encodeURIComponent(`[TP Feedback] ${payload.category || "General"} (sev ${payload.severity || "?"})`);
+    const lines = [
+      `From: ${payload.name || "Anonymous"} <${payload.email || "n/a"}>`,
+      `Where: ${payload.where || "n/a"}`,
+      `Severity: ${payload.severity || "n/a"}`,
+      "", payload.details || "", "", "--- meta ---",
+      `URL: ${payload.meta_url || ""}`, `UA: ${payload.meta_userAgent || ""}`,
+      `Viewport: ${payload.meta_viewport || ""}`, `TZ: ${payload.meta_timezone || ""}`,
+      `App: ${payload.meta_appver || ""}`
+    ];
+    return `mailto:${FALLBACK_EMAIL}?subject=${subject}&body=${encodeURIComponent(lines.join("\n"))}`;
+  }
 
-  function buildHTML() {
+  // --- TEMPLATE -------------------------------------------------------------
+  function buildHTML(){
     return `
-<button id="feedback-fab" class="feedback-fab" type="button" aria-haspopup="dialog" aria-controls="tp-feedback-modal" aria-expanded="false">
-  Feedback
-</button>
+<button id="feedback-fab" class="feedback-fab" type="button" aria-haspopup="dialog" aria-controls="tp-feedback-modal" aria-expanded="false">Feedback</button>
 
 <dialog id="tp-feedback-modal" aria-labelledby="feedback-title">
   <header class="feedback-head">
@@ -1096,29 +1140,33 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   </header>
 
   <div class="feedback-body">
+    <p class="feedback-intro">
+      Thanks for helping improve TabletopPals. Share bugs, ideas, or copy fixes.
+      Name is optional — click <em>Use random alias</em> if you prefer to stay anonymous.
+    </p>
+
     <form id="feedback-form" novalidate>
-      <!-- honeypot -->
+      <!-- honeypot (anti-bot; hidden by CSS) -->
       <input type="text" name="company" id="fb-company" class="feedback-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
-<div class="feedback-field">
-  <span>Severity (1 = tiny, 5 = blocks me)</span>
-  <div class="feedback-rating" role="radiogroup" aria-label="Severity">
-    ${[1,2,3,4,5].map(n => `
-      <label><input type="radio" name="severity" value="${n}" required><span>${n}</span></label>
-    `).join("")}
-  </div>
-  <div class="feedback-helper">Helps us triage quickly.</div>
-</div>
-
+      <div class="feedback-grid two">
         <label class="feedback-field">
+          <span>Category</span>
+          <select id="fb-category" name="category" required class="feedback-select">
+            <option value="" selected disabled>Select one…</option>
+            <option>Bug</option><option>Suggestion</option><option>UI/UX</option>
+            <option>Content/Copy</option><option>Performance</option><option>Other</option>
+          </select>
+          <div class="feedback-helper">What kind of feedback is this?</div>
+        </label>
+
+        <div class="feedback-field">
           <span>Severity (1 = tiny, 5 = blocks me)</span>
           <div class="feedback-rating" role="radiogroup" aria-label="Severity">
-            ${[1,2,3,4,5].map(n => `
-              <label><input type="radio" name="severity" value="${n}" required><span>${n}</span></label>
-            `).join("")}
+            ${[1,2,3,4,5].map(n => `<label><input type="radio" name="severity" value="${n}" required><span>${n}</span></label>`).join("")}
           </div>
           <div class="feedback-helper">Helps us triage quickly.</div>
-        </label>
+        </div>
       </div>
 
       <label class="feedback-field">
@@ -1136,7 +1184,10 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       <div class="feedback-grid two">
         <label class="feedback-field">
           <span>Your name <span class="feedback-helper">(optional)</span></span>
-          <input id="fb-name" name="name" type="text" class="feedback-input" autocomplete="name">
+          <div class="feedback-grid" style="grid-template-columns: 1fr auto; gap:8px">
+            <input id="fb-name" name="name" type="text" class="feedback-input" autocomplete="name">
+            <button type="button" id="fb-alias" class="btn ghost small">Use random alias</button>
+          </div>
         </label>
 
         <label class="feedback-field">
@@ -1150,7 +1201,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         <span>I agree to send this feedback (incl. basic device info) so you can improve the app.</span>
       </label>
 
-      <!-- Hidden meta (auto-filled) -->
+      <!-- Hidden meta -->
       <input type="hidden" name="meta_userAgent" id="fb-meta-ua">
       <input type="hidden" name="meta_viewport"  id="fb-meta-vp">
       <input type="hidden" name="meta_timezone"  id="fb-meta-tz">
@@ -1158,7 +1209,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       <input type="hidden" name="meta_appver"    id="fb-meta-app">
 
       <div class="feedback-actions">
-        <button class="btn" type="submit">Submit feedback</button>
+        <button class="btn" type="submit" disabled>Submit feedback</button>
         <button class="btn ghost" type="reset">Reset</button>
       </div>
 
@@ -1166,151 +1217,87 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     </form>
   </div>
 </dialog>
-`;
-  }
+`; }
 
-  function setStatus(msg, kind="") {
-    const el = $("#fb-status"); if(!el) return;
-    el.textContent = msg; el.className = `feedback-status ${kind}`;
-  }
+  // --- OPEN/CLOSE ------------------------------------------------------------
+  function openModal(){ const dlg=$("#tp-feedback-modal"); if(!dlg.open) dlg.showModal(); $("#feedback-fab")?.setAttribute("aria-expanded","true"); collectMeta(); $("#fb-category")?.focus(); }
+  function closeModal(){ const dlg=$("#tp-feedback-modal"); if(dlg.open) dlg.close(); $("#feedback-fab")?.setAttribute("aria-expanded","false"); }
 
-  function collectMeta() {
-    $("#fb-meta-ua").value  = navigator.userAgent || "";
-    $("#fb-meta-vp").value  = `${window.innerWidth}x${window.innerHeight}`;
-    try { $("#fb-meta-tz").value = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; }
-    catch { $("#fb-meta-tz").value = ""; }
-    $("#fb-meta-url").value = location.href;
-    $("#fb-meta-app").value = APP_VERSION_LABEL;
-  }
-
-  function serializeForm(form) {
-    const data = new FormData(form);
-    const obj = {};
-    for (const [k,v] of data.entries()) {
-      if (k === "company" && !v) continue; // keep hp only if filled
-      obj[k] = v;
-    }
-    return obj;
-  }
-
-  function queuePush(payload){
-    const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
-    q.push({ payload, t: Date.now() });
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
-  }
-
-  async function attemptSyncQueue(){
-    const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
-    if(!q.length) return;
-    const remaining = [];
-    for(const item of q){
-      try { await sendPayload(item.payload, {silent:true}); }
-      catch { remaining.push(item); }
-    }
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
-  }
-
-  async function sendPayload(payload){
-    if(!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes("REPLACE_ME")){
-      throw new Error("Endpoint not configured");
-    }
-    const res = await fetch(FORMSPREE_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if(!res.ok){
-      const msg = await res.text().catch(()=>res.statusText);
-      throw new Error(`Submit failed: ${res.status} ${msg}`);
-    }
-    return res.json().catch(()=> ({}));
-  }
-
-  function buildMailtoURL(payload){
-    const subject = encodeURIComponent(`[TP Feedback] ${payload.category || "General"} (sev ${payload.severity || "?"})`);
-    const lines = [];
-    lines.push(`From: ${payload.name || "Anonymous"} <${payload.email || "n/a"}>`);
-    lines.push(`Where: ${payload.where || "n/a"}`);
-    lines.push(`Severity: ${payload.severity || "n/a"}`);
-    lines.push("");
-    lines.push(payload.details || "");
-    lines.push("");
-    lines.push("--- meta ---");
-    lines.push(`URL: ${payload.meta_url || ""}`);
-    lines.push(`UA: ${payload.meta_userAgent || ""}`);
-    lines.push(`Viewport: ${payload.meta_viewport || ""}`);
-    lines.push(`TZ: ${payload.meta_timezone || ""}`);
-    lines.push(`App: ${payload.meta_appver || ""}`);
-    const body = encodeURIComponent(lines.join("\n"));
-    return `mailto:${FALLBACK_EMAIL}?subject=${subject}&body=${body}`;
-  }
-
-  function openModal(){
-    const dlg = $("#tp-feedback-modal");
-    if(!dlg.open) dlg.showModal();
-    $("#feedback-fab")?.setAttribute("aria-expanded", "true");
-    collectMeta();
-    $("#fb-category")?.focus();
-  }
-  function closeModal(){
-    const dlg = $("#tp-feedback-modal");
-    if(dlg.open) dlg.close();
-    $("#feedback-fab")?.setAttribute("aria-expanded", "false");
-  }
-
-  // Inject UI + wire events once DOM is ready
+  // --- INIT ------------------------------------------------------------------
   document.addEventListener("DOMContentLoaded", () => {
-    // Inject HTML once
+    // Inject once
     const container = document.createElement("div");
     container.className = "feedback-wrap";
     container.innerHTML = buildHTML();
     document.body.appendChild(container);
 
-    // Openers: floating button + any element with data-action="open-feedback"
+    // Triggers: FAB + any element with data-action="open-feedback"
     document.body.addEventListener("click", (e) => {
-      const t = e.target.closest("[data-action='open-feedback'], #feedback-fab");
-      if(t){ e.preventDefault(); openModal(); }
-      if(e.target.matches("[data-feedback-close]")) { e.preventDefault(); closeModal(); }
+      const open = e.target.closest("[data-action='open-feedback'], #feedback-fab");
+      if(open){ e.preventDefault(); openModal(); }
+      if(e.target.matches("[data-feedback-close]")){ e.preventDefault(); closeModal(); }
     });
-
-    // Close on <esc>
     $("#tp-feedback-modal")?.addEventListener("cancel", (e) => { e.preventDefault(); closeModal(); });
 
-    // Form handling
+    // Form events
     const form = $("#feedback-form");
+    const submitBtn = form?.querySelector('button[type="submit"]');
+    const consentEl = $("#fb-consent");
+    const detailsEl = $("#fb-details");
+    const categoryEl = $("#fb-category");
+
+    function isSeverityChecked(){ return !!document.querySelector('input[name="severity"]:checked'); }
+    function updateSubmitState(){
+      const hasCategory = !!categoryEl?.value;
+      const hasDetails  = !!detailsEl?.value.trim();
+      const hasConsent  = !!consentEl?.checked;
+      const hasSeverity = isSeverityChecked();
+      if(submitBtn){ submitBtn.disabled = !(hasCategory && hasDetails && hasConsent && hasSeverity); }
+    }
+    consentEl?.addEventListener("change", updateSubmitState);
+    form?.addEventListener("input", updateSubmitState);
+    form?.addEventListener("reset", () => setTimeout(updateSubmitState, 0));
+    updateSubmitState();
+
+    // Alias generator
+    const aliasBtn   = $("#fb-alias");
+    const nameInput  = $("#fb-name");
+    function randomAlias(){
+      const adjectives = ["Brave","Clever","Mighty","Swift","Cunning","Lucky","Quiet","Bold","Arcane","Wandering"];
+      const nouns      = ["Fox","Badger","Oak","Comet","Falcon","Wolf","Harbor","Willow","Lantern","Raven"];
+      const num        = Math.floor(Math.random()*900)+100;
+      return `${adjectives[Math.floor(Math.random()*adjectives.length)]}${nouns[Math.floor(Math.random()*nouns.length)]}-${num}`;
+    }
+    aliasBtn?.addEventListener("click", () => { if(nameInput){ nameInput.value = randomAlias(); updateSubmitState(); nameInput.focus(); } });
+
+    // Submit handler
     form?.addEventListener("submit", async (e) => {
       e.preventDefault();
       setStatus("");
-      const hp = $("#fb-company");
-      if(hp && hp.value){ setStatus("Bot detected.", "error"); return; }
+      const hp = $("#fb-company"); if(hp && hp.value){ setStatus("Bot detected.", "error"); return; }
 
-      // Required checks
-      const category = $("#fb-category");
-      const details  = $("#fb-details");
-      const consent  = $("#fb-consent");
-      if(!category.value){ setStatus("Please select a category.", "error"); category.focus(); return; }
-      if(!details.value.trim()){ setStatus("Please describe your feedback.", "error"); details.focus(); return; }
-      if(!consent.checked){ setStatus("Please agree to send your feedback.", "error"); consent.focus(); return; }
+      // Required checks (order matters for focus)
+      if(!categoryEl.value){ setStatus("Please select a category.", "error"); categoryEl.focus(); return; }
+      if(!isSeverityChecked()){ setStatus("Please pick a severity (1–5).", "error"); return; }
+      if(!detailsEl.value.trim()){ setStatus("Please describe your feedback.", "error"); detailsEl.focus(); return; }
+      if(!consentEl.checked){ setStatus("Please agree to send your feedback.", "error"); consentEl.focus(); return; }
 
       const payload = serializeForm(form);
 
       if(!navigator.onLine){
         queuePush(payload);
-        form.reset();
-        collectMeta();
+        form.reset(); collectMeta(); updateSubmitState();
         setStatus("You’re offline. Saved locally — we’ll auto-send when you’re back online.", "success");
         return;
       }
 
-      try {
+      try{
         await sendPayload(payload);
-        form.reset();
-        collectMeta();
+        form.reset(); collectMeta(); updateSubmitState();
         setStatus("Thank you! Your feedback has been submitted. 🎉", "success");
-      } catch (err) {
+      }catch(err){
         console.error(err);
         setStatus("Couldn’t submit automatically. Click to send by email instead.", "error");
-        // Append mailto fallback button
         const a = document.createElement("a");
         a.href = buildMailtoURL(payload);
         a.textContent = "Open email draft";
@@ -1320,8 +1307,11 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       }
     });
 
-    // Try to sync any offline feedback when back online
+    // Sync queued on online
     window.addEventListener("online", attemptSyncQueue);
+    // Collect meta now & try sync early
+    collectMeta();
+    attemptSyncQueue().catch(()=>{});
   });
 })();
 
