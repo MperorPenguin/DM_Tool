@@ -1100,20 +1100,15 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       <!-- honeypot -->
       <input type="text" name="company" id="fb-company" class="feedback-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
-      <div class="feedback-grid two">
-        <label class="feedback-field">
-          <span>Category</span>
-          <select id="fb-category" name="category" required class="feedback-select">
-            <option value="" selected disabled>Select one…</option>
-            <option>Bug</option>
-            <option>Suggestion</option>
-            <option>UI/UX</option>
-            <option>Content/Copy</option>
-            <option>Performance</option>
-            <option>Other</option>
-          </select>
-          <div class="feedback-helper">What kind of feedback is this?</div>
-        </label>
+<div class="feedback-field">
+  <span>Severity (1 = tiny, 5 = blocks me)</span>
+  <div class="feedback-rating" role="radiogroup" aria-label="Severity">
+    ${[1,2,3,4,5].map(n => `
+      <label><input type="radio" name="severity" value="${n}" required><span>${n}</span></label>
+    `).join("")}
+  </div>
+  <div class="feedback-helper">Helps us triage quickly.</div>
+</div>
 
         <label class="feedback-field">
           <span>Severity (1 = tiny, 5 = blocks me)</span>
