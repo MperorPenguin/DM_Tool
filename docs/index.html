@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TabletopPals — User Guide</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="docs-header">
+    <div class="wrap">
+      <h1 class="title">TabletopPals — User Guide</h1>
+      <div class="actions">
+        <a class="btn ghost" href="../index.html">← Back to app</a>
+        <button id="btn-print" class="btn" type="button" title="Print / Save as PDF">Print / PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap docs-grid" id="content">
+    <aside class="toc" aria-label="Table of contents">
+      <div class="toc-inner">
+        <input id="q" class="search" type="search" placeholder="Search the guide…" aria-label="Search the guide" />
+        <nav id="toc" class="toc-list" aria-live="polite"></nav>
+        <div class="toc-helpers">
+          <button id="btn-expand" class="btn ghost" type="button">Expand all</button>
+          <button id="btn-collapse" class="btn ghost" type="button">Collapse all</button>
+        </div>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <!-- Tip: edit/add sections below. Use <section> with an <h2 id="..."> to auto-appear in the TOC. -->
+      <section>
+        <h2 id="getting-started">Getting started</h2>
+        <details open>
+          <summary>Quick start</summary>
+          <p>Open the app’s landing page and use the tiles to navigate. The interface uses a dark theme and keyboard-friendly focus rings. Buttons, links, and inputs follow the primary accent colour from our theme.</p>
+          <ul>
+            <li><strong>Navigation:</strong> Tabs and tiles switch major tools.</li>
+            <li><strong>Offline:</strong> Most pages are static and fast; keep your browser cache enabled for speed.</li>
+            <li><strong>Accessibility:</strong> Use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move; <kbd>Enter</kbd>/<kbd>Space</kbd> to activate.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>Look & feel (theme)</summary>
+          <p>The entire app (including this guide) inherits colours and typography from <code>DocumentsTabletopPals/CSS/theme.css</code>. To change the global font, edit <code>--font-body</code> in that file.</p>
+        </details>
+      </section>
+
+      <section>
+        <h2 id="dm-panel">DM Panel & Dice</h2>
+        <details open>
+          <summary>DM Panel overview</summary>
+          <p>The DM panel groups controls for quick reference. Use the tabs to toggle features. Data persists locally in your browser.</p>
+        </details>
+
+        <details>
+          <summary>Dice roller</summary>
+          <p>Choose a die (e.g., d20), add modifiers, and roll. Keyboard tip: type the number then press <kbd>Enter</kbd>.</p>
+        </details>
+      </section>
+
+      <section>
+        <h2 id="encounters">Encounters</h2>
+        <details open>
+          <summary>Setup</summary>
+          <p>Set party size/levels, choose enemies, and review difficulty. Use dropdowns and presets where available to minimise typing.</p>
+        </details>
+        <details>
+          <summary>Calculators</summary>
+          <p>Use the calculators tab for quick maths (CR, XP budgets, etc.).</p>
+        </details>
+      </section>
+
+      <section>
+        <h2 id="characters">Character Manager</h2>
+        <details open>
+          <summary>Creating & editing</summary>
+          <p>Add characters with species, class, and other attributes. Selected options show a clear “active” state to confirm your pick.</p>
+        </details>
+        <details>
+          <summary>Party sync</summary>
+          <p>Party info is shared locally so you can view characters from the DM Party tab (uses a shared local storage key).</p>
+        </details>
+      </section>
+
+      <section>
+        <h2 id="feedback">Feedback & troubleshooting</h2>
+        <details open>
+          <summary>Submitting feedback</summary>
+          <p>If automatic submission fails, use the “send by email” fallback link. Ensure you’ve entered a valid email format.</p>
+        </details>
+        <details>
+          <summary>Common fixes</summary>
+          <ul>
+            <li><strong>Hard refresh:</strong> <kbd>Ctrl/Cmd</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> after theme changes.</li>
+            <li><strong>Tiles not updating:</strong> Make sure each page’s stylesheet imports <code>theme.css</code> as line 1.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section>
+        <h2 id="keyboard-shortcuts">Keyboard shortcuts</h2>
+        <details open>
+          <summary>Handy keys</summary>
+          <ul>
+            <li><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd>: move focus</li>
+            <li><kbd>Enter</kbd>/<kbd>Space</kbd>: activate focused control</li>
+          </ul>
+        </details>
+      </section>
+
+      <footer class="doc-footer">
+        <p>Last updated: <span id="last-updated"></span></p>
+      </footer>
+    </article>
+  </main>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
