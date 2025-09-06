@@ -1,5 +1,5 @@
 /* DM Toolkit — World Map + DM Page + Dice + Live Sync
-   Theme: Lime #d6ed17 (actions), Midnight #000e1b (backgrounds)
+   Theme (legacy note): Lime #d6ed17 (actions), Midnight #000e1b (backgrounds)
 */
 
 let MAPS = [];
@@ -58,11 +58,8 @@ function getPartyTokens(){
     id: c.id,
     name: c.name || 'Unnamed',
     cls: c.class || '—',
-    // traits: leave empty unless you later add traits in the Character Manager
     traits: Array.isArray(c.traits) ? c.traits : [],
-    // extra badges to show (species/background)
     badges: [c.background, c.species].filter(Boolean),
-    // hp is optional in the library; if added later, tokenCard will render it
     hp: Array.isArray(c.hp) && c.hp.length >= 2 ? c.hp : null,
   }));
 }
@@ -875,206 +872,15 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       }));
   }catch(err){ console.error('boot error', err); }
 });
-/* ===== DM — Enemy sync from Admin “Enemy Builder” (RESILIENT ADD-ONLY) ===== */
-(() => {
-  // Keys & channel used by Enemy Builder “Publish”
-  const ENEMY_DATA_KEYS = [
-    'tp_enemies_data_v1',          // primary (current)
-    'tp_enemies_v1',               // fallback (older)
-    'tp_encounters_enemies_v1'     // fallback (namespaced)
-  ];
-  const ENEMY_PING_KEYS = ['tp_enemies_public_v1']; // publish timestamp/count pings
-  const ENEMY_BC_NAME  = 'tp_enemies';              // BroadcastChannel name
-  const DEFAULT_ICON   = 'assets/class_icons/Enemy.svg';
 
-  // ——— Helpers to find the DM view & grid (no HTML changes required)
-  function getDmRoot() {
-    return document.getElementById('view-dm')
-        || document.querySelector('[data-panel="dm"]')
-        || document.body;
-  }
-  function getEnemiesGrid() {
-    const root = getDmRoot();
-    let el = root.querySelector('#dm-enemy-grid');  // use if you ever add an id
-    if (el) return el;
-    el = root.querySelector('.dm-grid3');          // your current enemies grid
-    if (el) return el;
-    return Array.from(document.querySelectorAll('.dm-grid3'))
-      .find(e => e.offsetParent !== null) || null;
-  }
-
-  // ——— Read published enemies from storage (robust to key variations)
-  function tryParse(key) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return null;
-      const val = JSON.parse(raw);
-      return Array.isArray(val) ? val : null;
-    } catch { return null; }
-  }
-  function readPublishedEnemies() {
-    for (const k of ENEMY_DATA_KEYS) {
-      const arr = tryParse(k);
-      if (arr) return arr;
-    }
-    // As last resort, scan enemy-like keys
-    try {
-      for (const k of Object.keys(localStorage)) {
-        if (/enemy/i.test(k) || /enemies/i.test(k)) {
-          const arr = tryParse(k);
-          if (arr) return arr;
-        }
-      }
-    } catch {}
-    return [];
-  }
-
-  // ——— Mapping to your token shape used by renderDmPage/tokenCard
-  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const coalesce = (...vals) => vals.find(v => v !== undefined && v !== null && v !== '');
-
-  function senseBadges(s) {
-    if (!s || typeof s !== 'string') return [];
-    const t = s.toLowerCase();
-    const out = [];
-    if (t.includes('darkvision')) out.push('Darkvision');
-    if (t.includes('blindsight')) out.push('Blindsight');
-    if (t.includes('tremorsense')) out.push('Tremorsense');
-    if (t.includes('truesight'))  out.push('Truesight');
-    return out;
-  }
-
-  function toToken(e) {
-    const id  = e.id || (crypto?.randomUUID?.() || ('e_' + Math.random().toString(36).slice(2,10)));
-    const hpMax = (typeof e.hp === 'number' && e.hp>0) ? e.hp : coalesce(e.hp?.max, e.hpMax, null);
-    const hpCur = coalesce(e.hp?.current, e.hpCurrent, hpMax, null);
-    const hpArr = hpMax ? [hpCur ?? hpMax, hpMax] : null;
-
-    const badges = [];
-    if (e.cr != null && e.cr !== '') badges.push(`CR ${String(e.cr)}`);
-    if (e.ac != null && e.ac !== '') badges.push(`AC ${String(e.ac)}`);
-    if (e.type) badges.push(String(e.type));
-
-    const traits = [
-      ...senseBadges(e.senses || ''),
-      ...(Array.isArray(e.tags) ? e.tags.slice(0,2) : [])
-    ];
-
-    return {
-      id,
-      name: e.name || 'Enemy',
-      cls: 'Enemy',           // ensures tokenCard picks Enemy.svg
-      hp: hpArr || undefined, // tokenCard handles undefined gracefully
-      badges,
-      traits
-    };
-  }
-
-  // ——— Sync into app state (what your Enemies tab consumes)
-  function syncEnemiesIntoState(list) {
-    if (window.state && window.state.tokens) {
-      window.state.tokens.enemy = list;
-    }
-  }
-
-  // ——— Optional DOM fallback (only used if we can’t/won’t call renderDmPage)
-  function cardHTML(t) {
-    const hpBadge = (t.hp && t.hp.length === 2)
-      ? `<span class="badge">HP ${esc(t.hp[0])}/${esc(t.hp[1])}</span>` : '';
-    const moreBadges  = (t.badges || []).map(b => `<span class="badge">${esc(b)}</span>`).join('');
-    const traitBadges = (t.traits || []).map(b => `<span class="badge">${esc(b)}</span>`).join('');
-    return `
-      <div class="dm-character-box" data-id="${esc(t.id)}">
-        <div class="dm-card" onclick="selectFromPanel && selectFromPanel('enemy','${esc(t.id)}')">
-          <div class="avatar"><img src="${DEFAULT_ICON}" alt=""></div>
-          <div class="name">${esc(t.name)}</div>
-          <div class="badges">
-            <span class="badge">Enemy</span>
-            ${hpBadge}${moreBadges}${traitBadges}
-          </div>
-        </div>
-        <div class="dm-actions">
-          <button class="dm-title-btn short adv" title="Advantage" onclick="quickAdvFor && quickAdvFor('enemy','${esc(t.id)}')">A</button>
-          <button class="dm-title-btn short dis"  title="Disadvantage" onclick="quickDisFor && quickDisFor('enemy','${esc(t.id)}')">D</button>
-        </div>
-      </div>`;
-  }
-
-  let lastSig = '';
-  function hydrateEnemies() {
-    const published = readPublishedEnemies();
-    const list = published.map(toToken);
-
-    // 1) update app state (your renderer consumes this)
-    syncEnemiesIntoState(list);
-
-    // 2) if we’re on DM→Enemies and renderer exists, just render normally
-    const inDmEnemies = (window.state?.route === 'dm' && window.state?.ui?.dmTab === 'enemies');
-    if (inDmEnemies && typeof window.renderDmPage === 'function') {
-      const sig = JSON.stringify(list.map(e => [e.id, e.name, e.badges?.join('|'), e.traits?.join('|'), e.hp?.join('/')]));
-      if (sig !== lastSig) {
-        lastSig = sig;
-        window.renderDmPage();
-      }
-      return;
-    }
-
-    // 3) fallback DOM render if needed (no HTML edits required)
-    const grid = getEnemiesGrid();
-    if (!grid) return;
-    const sig = JSON.stringify(list.map(e => [e.id, e.name, e.badges?.join('|'), e.traits?.join('|'), e.hp?.join('/')]));
-    if (sig === lastSig) return;
-    lastSig = sig;
-    grid.innerHTML = list.map(cardHTML).join('');
-  }
-
-  const hydrateSoon = () => setTimeout(hydrateEnemies, 0);
-
-  // ——— Event wiring (load, tab switches, publishes)
-  document.addEventListener('DOMContentLoaded', hydrateSoon);
-
-  // DM nav clicked
-  document.getElementById('nav-dm')?.addEventListener('click', hydrateSoon);
-
-  // Enemies sub-tab clicked (inline onclick uses setDmTab('enemies'))
-  document.addEventListener('click', (ev) => {
-    const btn = ev.target.closest('.dm-tab');
-    if (!btn) return;
-    const onclk = btn.getAttribute('onclick') || '';
-    const label = (btn.textContent || '').trim().toLowerCase();
-    if (onclk.includes("setDmTab('enemies')") || label === 'enemies') {
-      hydrateSoon();
-    }
-  }, true);
-
-  // Storage ping/data when Admin publishes
-  window.addEventListener('storage', (e) => {
-    if (!e) return;
-    if (ENEMY_DATA_KEYS.includes(e.key) || ENEMY_PING_KEYS.includes(e.key)) hydrateSoon();
-  });
-
-  // Instant cross-tab updates
-  try {
-    const bc = new BroadcastChannel(ENEMY_BC_NAME);
-    bc.onmessage = hydrateSoon;
-  } catch {}
-
-  // Re-hydrate when DM view appears/rebuilds
-  const dmRoot = getDmRoot();
-  if (dmRoot) {
-    const mo = new MutationObserver(hydrateSoon);
-    mo.observe(dmRoot, { attributes: true, subtree: true, childList: true });
-  }
-})();
-
-========================================================================
+/* ======================================================================
    TabletopPals — Feedback Modal (self-contained) — v2
    Paste at END OF FILE in DocumentsTabletopPals/app.js
    ====================================================================== */
 (() => {
   // --- CONFIG ---------------------------------------------------------------
   const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynlj"; // single source of truth
-  const FALLBACK_EMAIL     = "matthewmarais14@gmail.com";                    // used in mailto
+  const FALLBACK_EMAIL     = "matthewmarais14@gmail.com";       // used in mailto
   const QUEUE_KEY          = "tp_feedback_queue_v1";
   const APP_VERSION_LABEL  = "DocumentsTabletopPals — Major Alpha";
 
@@ -1099,26 +905,20 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     q.push({ payload, t: Date.now() });
     localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
   }
-async function sendPayload(payload){
-  // Use your working Formspree endpoint ID here:
-  const ENDPOINT = "https://formspree.io/f/mdklynlj";
-  if (!ENDPOINT) throw new Error("Endpoint not configured");
-
-  const res = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    const txt = await res.text().catch(() => res.statusText);
-    throw new Error(`Submit failed: ${res.status} ${txt}`);
+  async function sendPayload(payload){
+    const ENDPOINT = FORMSPREE_ENDPOINT;
+    if (!ENDPOINT) throw new Error("Endpoint not configured");
+    const res = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => res.statusText);
+      throw new Error(`Submit failed: ${res.status} ${txt}`);
+    }
+    return res.json().catch(() => ({}));
   }
-  return res.json().catch(() => ({}));
-}
   function buildMailtoURL(payload){
     const subject = encodeURIComponent(`[TP Feedback] ${payload.category || "General"} (sev ${payload.severity || "?"})`);
     const lines = [
@@ -1131,6 +931,24 @@ async function sendPayload(payload){
       `App: ${payload.meta_appver || ""}`
     ];
     return `mailto:${FALLBACK_EMAIL}?subject=${subject}&body=${encodeURIComponent(lines.join("\n"))}`;
+  }
+
+  // NEW: queue sender (the missing function that caused runtime errors)
+  async function attemptSyncQueue(){
+    try{
+      if(!navigator.onLine) return;
+      const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
+      if(!Array.isArray(q) || !q.length) return;
+      const keep = [];
+      for(const item of q){
+        try { await sendPayload(item.payload); }
+        catch(err){ keep.push(item); }
+      }
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(keep));
+      if(keep.length===0) setStatus("Queued feedback sent. Thank you!", "success");
+    }catch(e){
+      // Silent: not mission-critical
+    }
   }
 
   // --- TEMPLATE -------------------------------------------------------------

@@ -79,7 +79,9 @@ h3{ font-size: var(--fs-h3); }
   padding: var(--pad-y) var(--pad-x);
   font-size: var(--fs-btn);
 }
+/* Let theme.css own the active visual
 .nav button.active{ background: var(--lime-700); }
+*/
 
 /* Main container */
 main{ max-width:1280px; margin:0 auto; padding:16px }
@@ -216,7 +218,7 @@ button, .btn{ font: inherit; touch-action: manipulation; }
 
 .dm-character-box{
   display:flex; flex-direction:column; gap:10px;
-  background:var(--midnight-blue); border:1px solid #233044; border-radius:14px; padding:10px;
+  background:var(--midnight-blue); border:1px solid var(--border); border-radius:14px; padding:10px;
   box-shadow:0 2px 8px rgba(0,0,0,.35);
   transition:.15s border-color,.15s transform,.15s box-shadow;
   min-width:0; overflow:hidden;
@@ -225,7 +227,7 @@ button, .btn{ font: inherit; touch-action: manipulation; }
   border-color:var(--lime-green);
   transform:translateY(-1px);
   box-shadow:0 8px 22px rgba(0,0,0,.45),
-             0 0 0 2px rgba(214,237,23,.22) inset;
+             0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent) inset;
 }
 
 .dm-card{
@@ -233,7 +235,10 @@ button, .btn{ font: inherit; touch-action: manipulation; }
   border-radius:10px; padding:10px 8px;
   display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; cursor:pointer;
 }
-.dm-card.selected{ border-color:var(--lime-green); background: rgba(214,237,23,.08); }
+.dm-card.selected{
+  border-color:var(--lime-green);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
 .dm-card .name{ font-weight:800; font-size: clamp(12px, 2.2vw, 13.5px); }
 .dm-card .avatar{
   width:52px; height:52px; border-radius:10px; border:1px solid var(--border);
@@ -447,7 +452,7 @@ label.feedback-field, div.feedback-field{
 /* Actions + status */
 .feedback-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; padding: 0 20px; }
 .feedback-status{ min-height:1.5em; margin:10px 20px 0 20px; }
-.feedback-status.success{ color:#8ef0a6; }
+.feedback-status.success{ color:#8ef0a6; } /* optional: swap for a color-mix with tokens if you prefer */
 .feedback-status.error{ color:#ffb3b3; }
 
 /* Hide the honeypot completely so it can't overlay anything */
