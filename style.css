@@ -458,3 +458,49 @@ label.feedback-field, div.feedback-field{
 
 /* Disable style for the gated submit */
 .feedback-actions .btn[disabled]{ opacity:.55; cursor:not-allowed; filter:grayscale(.15); }
+
+/* ---------- MOBILE TOP NAV: no-squish pills + smooth horizontal scroll ---------- */
+@media (max-width: 1024px){
+  /* Your existing top nav container */
+  .top .inner .nav {
+    /* keep one row and allow sideways scroll */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    gap: 8px;                  /* keep your spacing tidy */
+    padding: 8px 0;            /* breathing room so it doesn’t sit on the edge */
+  }
+
+  /* Buttons and anchor-buttons living in that row */
+  .top .inner .nav button,
+  .top .inner .nav a.btn {
+    flex: 0 0 auto;            /* do NOT shrink */
+    min-width: 88px;           /* comfortable tap target */
+    padding: 10px 14px;        /* keep size consistent with tokens */
+    line-height: 1.2;
+    font-size: 0.95rem;
+    white-space: nowrap;       /* keep labels on a single line */
+    scroll-snap-align: start;  /* snap items nicely when scrolling */
+  }
+}
+
+/* Tighter on very small phones */
+@media (max-width: 480px){
+  .top .inner .nav button,
+  .top .inner .nav a.btn {
+    min-width: 84px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Optional: subtle horizontal scrollbar polish (still accessible) */
+@media (max-width: 1024px){
+  .top .inner .nav::-webkit-scrollbar{ height: 8px; }
+  .top .inner .nav::-webkit-scrollbar-thumb{
+    background: color-mix(in srgb, var(--color-primary) 25%, transparent);
+    border-radius: 8px;
+  }
+}
