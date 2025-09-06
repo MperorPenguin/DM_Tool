@@ -1,7 +1,7 @@
 # Terms of Use
 
-**Effective date:** [DATE]  
-**Owner:** [YOUR FULL NAME / COMPANY], [ADDRESS], contact: [EMAIL]
+**Effective date:** [01/08/2025]  
+**Owner:** [M D MARAIS], [SOUTHAMPTON], contact: [matthewmarais14@gmail.com]
 
 These Terms govern your access to and use of the **TabletopPals / DocumentsTabletopPals** website and web application (the “Service”). By using the Service you agree to these Terms.
 

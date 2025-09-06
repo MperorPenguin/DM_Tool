@@ -1,7 +1,7 @@
 # Privacy & Cookie Notice
 
-**Effective date:** [DATE]  
-**Controller:** [YOUR NAME / COMPANY], [ADDRESS], contact: [EMAIL]
+**Effective date:** [01/08/2025]  
+**Owner:** [M D MARAIS], [SOUTHAMPTON], contact: [matthewmarais14@gmail.com]
 
 We process personal data in accordance with the UK GDPR and the Data Protection Act 2018.
 

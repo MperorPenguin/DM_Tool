@@ -1,6 +1,8 @@
 # TabletopPals Proprietary Software Licence
 
-Copyright (c) [YEAR] [YOUR FULL NAME / COMPANY]. All rights reserved.
+Copyright (c) \*\*Effective date:\*\* \[01/08/2025]  
+
+\*\*Owner:\*\* \[M D MARAIS], \[SOUTHAMPTON], contact: \[matthewmarais14@gmail.com] All rights reserved.
 
 This software, including all source code, images, audio, and other assets contained in the
 **DocumentsTabletopPals** project (the “Software”), is proprietary and owned by the Licensor named above.
@@ -18,3 +20,4 @@ You must not remove or alter any proprietary notices or copyright watermarks.
 for any indirect, incidental, special, consequential, or punitive damages.
 
 **Governing Law.** England and Wales.
+
