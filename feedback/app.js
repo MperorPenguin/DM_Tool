@@ -1,15 +1,10 @@
 // --- CONFIG ---
-// Replace with your Formspree endpoint (yours from earlier is kept here)
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynlj";
-
-// Optional: fallback email if API blocked (used in mailto link)
-const FALLBACK_EMAIL = "matthewmarais14@gmail.com";
-
-// LocalStorage key for offline queue
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynlj"; // your live endpoint
+const FALLBACK_EMAIL = "matthewmarais14@gmail.com";            // mailto fallback
 const QUEUE_KEY = "tp_feedback_queue_v1";
 
 // Shorthand
-function byId(id){ return document.getElementById(id); }
+const byId = (id)=>document.getElementById(id);
 
 // Status helper
 function setStatus(msg, kind=""){
@@ -19,37 +14,51 @@ function setStatus(msg, kind=""){
   el.className = `status ${kind}`;
 }
 
-// Collect device/app meta
+// Meta
 function collectMeta(){
   byId("meta_userAgent").value = navigator.userAgent || "";
   byId("meta_viewport").value  = `${window.innerWidth}x${window.innerHeight}`;
   try { byId("meta_timezone").value = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; }
-  catch(e){ byId("meta_timezone").value=""; }
+  catch { byId("meta_timezone").value = ""; }
   byId("meta_url").value = location.href;
   byId("meta_appver").value = "DocumentsTabletopPals — Major Alpha";
 }
 
-// Turn form into plain object (skips empty honeypot)
+// Serialize (skip empty honeypot)
 function serializeForm(form){
   const data = new FormData(form);
   const obj = {};
-  for(const [k,v] of data.entries()){
-    if(k === "company" && !v) continue; // honeypot empty -> ignore
-    obj[k] = v;
+  for (const [k,v] of data.entries()){
+    if (k === "company" && !v) continue;
+    obj[k] = typeof v === "string" ? v.trim() : v;
   }
   return obj;
 }
 
-// Ensure payload always has minimally acceptable fields for Formspree
-function normalizePayload(p){
-  const q = { ...p };
+// Email validation + sanitization
+function isValidEmail(s){
+  if(!s) return false;
+  const v = s.trim();
+  // simple robust pattern: text@text.tld
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+}
+function sanitizeEmail(obj){
+  if(typeof obj.email === "string" && !isValidEmail(obj.email)){
+    delete obj.email; // remove invalid so Formspree won’t 422
+  }
+  return obj;
+}
 
-  // Default category/severity if missing (for older queued items)
+// Normalize payload for Formspree
+function normalizePayload(p){
+  const q = sanitizeEmail({ ...p });
+
   if(!q.category) q.category = "Other";
   if(!q.severity) q.severity = "3";
 
-  // Ensure details isn't empty; fold context in if needed
-  if(!q.details || !q.details.trim()){
+  // Ensure details not empty; fold context if needed
+  const details = (q.details || "").trim();
+  if(!details){
     const parts = [];
     if(q.where) parts.push(`Where: ${q.where}`);
     if(q.name)  parts.push(`From: ${q.name}`);
@@ -57,30 +66,27 @@ function normalizePayload(p){
     q.details = parts.length ? parts.join("\n") : "(no details provided)";
   }
 
-  // Some services are happier with a single "message"
+  // Convenience single-field summary
   q.message = `${q.category} (sev ${q.severity}) — ${q.details}`;
 
   return q;
 }
 
-// Offline queue
+// Queue
 function queuePush(payload){
   const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
   q.push({ payload, t: Date.now() });
   localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
 }
-
 async function attemptSyncQueue(){
   const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
   if(!q.length) return;
 
   const remaining = [];
   for(const item of q){
-    try {
-      const payload = normalizePayload(item.payload);
-      await sendPayload(payload);
-    } catch (e){
-      // Keep it for later; 422 usually means the saved item was malformed
+    try{
+      await sendPayload(normalizePayload(item.payload));
+    }catch(e){
       remaining.push(item);
       console.warn("[Feedback] queue send failed:", e?.message || e);
     }
@@ -88,14 +94,14 @@ async function attemptSyncQueue(){
   localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
 }
 
-// POST helper
+// POST
 async function sendPayload(payload){
   if(!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes("REPLACE_ME")){
     throw new Error("Endpoint not configured");
   }
   const res = await fetch(FORMSPREE_ENDPOINT, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    headers: { "Content-Type":"application/json", "Accept":"application/json" },
     body: JSON.stringify(payload),
   });
   if(!res.ok){
@@ -105,7 +111,7 @@ async function sendPayload(payload){
   return res.json().catch(()=> ({}));
 }
 
-// Email fallback
+// mailto fallback
 function buildMailtoURL(payload){
   const subject = encodeURIComponent(`[TP Feedback] ${payload.category || "General"} (sev ${payload.severity || "?"})`);
   const lines = [];
@@ -121,22 +127,21 @@ function buildMailtoURL(payload){
   lines.push(`Viewport: ${payload.meta_viewport || ""}`);
   lines.push(`TZ: ${payload.meta_timezone || ""}`);
   lines.push(`App: ${payload.meta_appver || ""}`);
-  const body = encodeURIComponent(lines.join("\n"));
-  return `mailto:${FALLBACK_EMAIL}?subject=${subject}&body=${body}`;
+  return `mailto:${FALLBACK_EMAIL}?subject=${subject}&body=${encodeURIComponent(lines.join("\n"))}`;
 }
 
-// Validate required inputs
+// Validate required fields (and email if present)
 function validate(form){
-  if(form.company && form.company.value){ // honeypot filled -> bot
-    throw new Error("Bot detected");
-  }
-  if(!form.category.value) throw new Error("Please select a category.");
-  if(!document.querySelector('input[name="severity"]:checked')) throw new Error("Please pick a severity (1–5).");
-  if(!form.details.value.trim()) throw new Error("Please describe your feedback.");
-  if(!byId("consent").checked) throw new Error("Please agree to send your feedback.");
+  if(form.company && form.company.value){ throw new Error("Bot detected"); }
+  if(!form.category.value){ throw new Error("Please select a category."); }
+  if(!document.querySelector('input[name="severity"]:checked')){ throw new Error("Please pick a severity (1–5)."); }
+  if(!form.details.value.trim()){ throw new Error("Please describe your feedback."); }
+  if(!byId("consent").checked){ throw new Error("Please agree to send your feedback."); }
+  const emailVal = byId("email").value;
+  if(emailVal && !isValidEmail(emailVal)){ throw new Error("Please enter a valid email or leave it blank."); }
 }
 
-// Alias generator
+// Alias
 function randomAlias(){
   const adjectives = ["Brave","Clever","Mighty","Swift","Cunning","Lucky","Quiet","Bold","Arcane","Wandering"];
   const nouns      = ["Fox","Badger","Oak","Comet","Falcon","Wolf","Harbor","Willow","Lantern","Raven"];
@@ -144,76 +149,78 @@ function randomAlias(){
   return `${adjectives[Math.floor(Math.random()*adjectives.length)]}${nouns[Math.floor(Math.random()*nouns.length)]}-${num}`;
 }
 
-// Gate submit until ready
+// Gate submit (now also checks email validity if present)
 function updateSubmitState(){
   const btn   = byId("submit-btn");
   const hasCat = !!byId("category")?.value;
   const hasDet = !!byId("details")?.value.trim();
   const hasCon = !!byId("consent")?.checked;
   const hasSev = !!document.querySelector('input[name="severity"]:checked');
-  if(btn) btn.disabled = !(hasCat && hasDet && hasCon && hasSev);
+  const email  = byId("email")?.value?.trim() || "";
+  const emailOk = !email || isValidEmail(email);
+  if(btn) btn.disabled = !(hasCat && hasDet && hasCon && hasSev && emailOk);
 }
 
-// Init
 window.addEventListener("DOMContentLoaded", () => {
   collectMeta();
-  attemptSyncQueue().catch(()=>{}); // try to flush any old items
+  attemptSyncQueue().catch(()=>{});
 
   const form = byId("feedback-form");
   const aliasBtn = byId("alias-btn");
+  const emailEl = byId("email");
 
-  // Input wiring for gating
+  // live gating
   form.addEventListener("input", updateSubmitState);
   form.addEventListener("change", updateSubmitState);
   form.addEventListener("reset", () => {
-    setTimeout(() => { collectMeta(); updateSubmitState(); setStatus(""); }, 0);
+    setTimeout(() => { collectMeta(); setStatus(""); updateSubmitState(); }, 0);
+  });
+  // optional UI validity message for email
+  emailEl?.addEventListener("input", () => {
+    if(emailEl.value && !isValidEmail(emailEl.value)){
+      emailEl.setCustomValidity("Please enter a valid email or leave it blank.");
+    }else{
+      emailEl.setCustomValidity("");
+    }
   });
   updateSubmitState();
 
-  // Alias click
+  // alias
   aliasBtn?.addEventListener("click", () => {
     const name = byId("name");
     if(name){ name.value = randomAlias(); name.focus(); updateSubmitState(); }
   });
 
-  // Submit
+  // submit
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     setStatus("");
-    try {
+    try{
       validate(form);
       const payload = normalizePayload(serializeForm(form));
 
       if(!navigator.onLine){
         queuePush(payload);
-        form.reset();
-        collectMeta();
-        updateSubmitState();
+        form.reset(); collectMeta(); updateSubmitState();
         setStatus("You’re offline. Saved locally — we’ll auto-send when you’re back online.", "success");
         return;
       }
 
       await sendPayload(payload);
-      form.reset();
-      collectMeta();
-      updateSubmitState();
+      form.reset(); collectMeta(); updateSubmitState();
       setStatus("Thank you! Your feedback has been submitted. 🎉", "success");
-
-    } catch(err){
+    }catch(err){
       console.error(err);
-      // mailto fallback
       const payload = normalizePayload(serializeForm(form));
-      const mailto = buildMailtoURL(payload);
-      setStatus("Couldn’t submit automatically. Click to send by email instead.", "error");
       const a = document.createElement("a");
-      a.href = mailto;
+      a.href = buildMailtoURL(payload);
       a.textContent = "Open email draft";
       a.className = "btn ghost";
       a.style.marginLeft = "10px";
+      setStatus("Couldn’t submit automatically. Click to send by email instead.", "error");
       byId("form-status").appendChild(a);
     }
   });
 
-  // Auto-sync when back online
   window.addEventListener("online", attemptSyncQueue);
 });
