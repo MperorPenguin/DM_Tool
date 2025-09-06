@@ -1,9 +1,9 @@
 // --- CONFIG ---
 // Replace with your Formspree endpoint:
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/REPLACE_ME";
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynlj";
 
 // Optional: fallback email if API blocked (used in mailto link)
-const FALLBACK_EMAIL = "you@example.com";
+const FALLBACK_EMAIL = "matthewmarais14@gmail.com";
 
 // LocalStorage key for offline queue
 const QUEUE_KEY = "tp_feedback_queue_v1";
