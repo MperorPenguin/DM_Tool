@@ -31,6 +31,29 @@ function collectMeta(){
 
 // Turn form into plain object (skips empty honeypot)
 function serializeForm(form){
+// Ensure payload always has minimally acceptable fields for Formspree
+function normalizePayload(p){
+  const q = { ...p };
+
+  // Required-ish fields for our logic
+  if(!q.category) q.category = "Other";
+  if(!q.severity) q.severity = "3";
+
+  // Ensure details isn't empty; fold context in if needed
+  if(!q.details || !q.details.trim()){
+    const parts = [];
+    if(q.where) parts.push(`Where: ${q.where}`);
+    if(q.name)  parts.push(`From: ${q.name}`);
+    if(q.email) parts.push(`Email: ${q.email}`);
+    q.details = parts.length ? parts.join("\n") : "(no details provided)";
+  }
+
+  // Some services are happier with a single "message"
+  q.message = `${q.category} (sev ${q.severity}) — ${q.details}`;
+
+  return q;
+}
+
   const data = new FormData(form);
   const obj = {};
   for(const [k,v] of data.entries()){
@@ -50,10 +73,17 @@ function queuePush(payload){
 async function attemptSyncQueue(){
   const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
   if(!q.length) return;
+
   const remaining = [];
   for(const item of q){
-    try { await sendPayload(item.payload); }
-    catch(e){ remaining.push(item); }
+    try {
+      const payload = normalizePayload(item.payload);
+      await sendPayload(payload);
+    } catch (e){
+      // Keep it for later; 422 usually means the saved item was malformed
+      remaining.push(item);
+      console.warn("[Feedback] queue send failed:", e?.message || e);
+    }
   }
   localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
 }
@@ -150,7 +180,7 @@ window.addEventListener("DOMContentLoaded", () => {
     setStatus("");
     try {
       validate(form);
-      const payload = serializeForm(form);
+      const payload = normalizePayload(serializeForm(form));
 
       if(!navigator.onLine){
         queuePush(payload);
@@ -170,7 +200,7 @@ window.addEventListener("DOMContentLoaded", () => {
     } catch(err){
       console.error(err);
       // mailto fallback
-      const payload = serializeForm(form);
+     const payload = normalizePayload(serializeForm(form));
       const mailto = buildMailtoURL(payload);
       setStatus("Couldn’t submit automatically. Click to send by email instead.", "error");
       const a = document.createElement("a");
