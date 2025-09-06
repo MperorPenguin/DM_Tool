@@ -1073,7 +1073,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
    ====================================================================== */
 (() => {
   // --- CONFIG ---------------------------------------------------------------
-  const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynl"; // <- put yours
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynlj"; // single source of truth
   const FALLBACK_EMAIL     = "matthewmarais14@gmail.com";                    // used in mailto
   const QUEUE_KEY          = "tp_feedback_queue_v1";
   const APP_VERSION_LABEL  = "DocumentsTabletopPals — Major Alpha";
@@ -1099,22 +1099,26 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     q.push({ payload, t: Date.now() });
     localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
   }
-  async function attemptSyncQueue(){
-    const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
-    if(!q.length) return;
-    const remaining = [];
-    for(const item of q){ try { await sendPayload(item.payload); } catch { remaining.push(item); } }
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
+async function sendPayload(payload){
+  // Use your working Formspree endpoint ID here:
+  const ENDPOINT = "https://formspree.io/f/mdklynlj";
+  if (!ENDPOINT) throw new Error("Endpoint not configured");
+
+  const res = await fetch(ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => res.statusText);
+    throw new Error(`Submit failed: ${res.status} ${txt}`);
   }
-  async function sendPayload(payload){
-    if(!FORMSPREE_ENDPOINT || const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynlj";
-")) throw new Error("Endpoint not configured");
-    const res = await fetch(FORMSPREE_ENDPOINT, {
-      method:"POST", headers:{ "Content-Type":"application/json", "Accept":"application/json" }, body: JSON.stringify(payload)
-    });
-    if(!res.ok){ const txt = await res.text().catch(()=>res.statusText); throw new Error(`Submit failed: ${res.status} ${txt}`); }
-    return res.json().catch(()=> ({}));
-  }
+  return res.json().catch(() => ({}));
+}
   function buildMailtoURL(payload){
     const subject = encodeURIComponent(`[TP Feedback] ${payload.category || "General"} (sev ${payload.severity || "?"})`);
     const lines = [
