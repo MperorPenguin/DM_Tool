@@ -3,29 +3,173 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Encounters</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    :root{ --lime-green:#d6ed17; --midnight-blue:#000e1b; --text:#d7e6ff; --border:#0f2a44; }
-    html,body{
-      margin:0; background:var(--midnight-blue); color:var(--text);
-      font-family:"Arvo", Georgia, serif; display:grid; place-items:center; height:100svh
-    }
-    a{ color:#000; background:var(--lime-green); padding:.7rem 1rem; border-radius:.7rem; text-decoration:none; font-weight:700 }
-    a:hover{ background:#c6de10 }
-    a:active{ background:#a7c60e }
-    a:focus-visible{ outline:3px solid var(--lime-green); outline-offset:3px }
-    .wrap{ display:grid; gap:.75rem; place-items:center }
-    .muted{ opacity:.75 }
-  </style>
+  <title>Encounter Builder — Calculator</title>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <div class="wrap">
-    <h1>Encounters</h1>
-    <p class="muted">Open the Encounter Builder (Calculator).</p>
-    <p><a href="./encounters/">Open Encounter Builder</a></p>
-  </div>
+  <header class="wrap bar">
+    <div class="title">
+      <h1>Encounter Builder <small class="muted">Calculator</small></h1>
+      <div class="sub">Dropdown-first calculator • Party + Monster Groups • Live Difficulty</div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Encounter sections">
+      <button class="tab btn ghost" data-tab="setup" aria-selected="true">Setup</button>
+      <button class="tab btn ghost" data-tab="difficulty" aria-selected="false">Difficulty</button>
+      <button class="tab btn ghost" data-tab="calculators" aria-selected="false">Calculators</button>
+    </nav>
+  </header>
+
+  <main class="wrap main">
+    <!-- SETUP -->
+    <section id="tab-setup" class="tabpanel" role="tabpanel">
+      <div class="grid cols-2">
+        <section class="card">
+          <header class="section-head">
+            <h2>Party</h2>
+            <div class="right">
+              <label class="switch">
+                <input type="checkbox" id="ruleset2024" />
+                <span>Use 2024 (beta) math</span>
+              </label>
+            </div>
+          </header>
+
+          <div class="party">
+            <div class="helper tiny">Pulled automatically from your Character Creator (key: <code>tp_cc_characters</code>). You can also add ad‑hoc party members below.</div>
+            <div id="partyList" class="list"></div>
+            <form id="partyAdd" class="grid cols-3 compact">
+              <label class="field"><span>Name</span><input id="pc-name" type="text" placeholder="E.g., Kael" /></label>
+              <label class="field"><span>Level</span>
+                <select id="pc-lvl">
+                  <option value="">—</option>
+                  <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                  <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                  <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+                  <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+                </select>
+              </label>
+              <div class="field align-end"><button class="btn" id="btn-add-pc" type="submit">+ Add PC</button></div>
+            </form>
+          </div>
+        </section>
+
+        <section class="card">
+          <header class="section-head">
+            <h2>Monster Group Builder</h2>
+            <div class="right">
+              <button class="btn ghost" id="btn-open-admin" type="button">Choose from Admin</button>
+            </div>
+          </header>
+
+          <form id="groupForm" class="grid cols-6 compact">
+            <label class="field cols-3"><span>Monster</span><input id="m-name" type="text" placeholder="Goblin Scout" /></label>
+            <label class="field"><span>CR</span>
+              <select id="m-cr">
+                <option value="">—</option>
+                <option>0</option><option>1/8</option><option>1/4</option><option>1/2</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+                <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+                <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
+                <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option>
+              </select>
+            </label>
+            <label class="field"><span>XP (auto)</span><input id="m-xp" type="number" inputmode="numeric" placeholder="e.g., 50" /></label>
+            <label class="field"><span>AC</span><input id="m-ac" type="number" inputmode="numeric" placeholder="15" /></label>
+            <label class="field"><span>HP</span><input id="m-hp" type="number" inputmode="numeric" placeholder="22" /></label>
+            <label class="field"><span>Count</span><input id="m-count" type="number" inputmode="numeric" value="1" min="1" /></label>
+            <div class="field align-end cols-2"><button class="btn" id="btn-add-group" type="submit">+ Add Group</button></div>
+          </form>
+
+          <div id="groupsList" class="list"></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- DIFFICULTY -->
+    <section id="tab-difficulty" class="tabpanel" role="tabpanel" hidden>
+      <section class="card">
+        <header class="section-head"><h2>Difficulty</h2></header>
+        <div id="diffReadout" class="diff"></div>
+      </section>
+    </section>
+
+    <!-- CALCULATORS -->
+    <section id="tab-calculators" class="tabpanel" role="tabpanel" hidden>
+      <div class="grid cols-2">
+        <section class="card">
+          <header class="section-head"><h2>Attack vs AC</h2></header>
+          <form id="calc-attack" class="grid cols-4 compact">
+            <label class="field"><span>To-Hit</span>
+              <select id="atk-bonus">
+                <option value="">—</option>
+                <option>+2</option><option>+3</option><option>+4</option><option>+5</option><option>+6</option>
+                <option>+7</option><option>+8</option><option>+9</option><option>+10</option><option>+11</option>
+              </select>
+            </label>
+            <label class="field"><span>Target AC</span>
+              <select id="tgt-ac">
+                <option value="">—</option>
+                <option>12</option><option>13</option><option>14</option><option>15</option><option>16</option>
+                <option>17</option><option>18</option><option>19</option><option>20</option><option>21</option>
+              </select>
+            </label>
+            <label class="field"><span>Advantage</span>
+              <select id="atk-adv">
+                <option value="normal">Normal</option>
+                <option value="adv">Advantage</option>
+                <option value="dis">Disadvantage</option>
+              </select>
+            </label>
+            <div class="field align-end"><button class="btn" type="submit">Calculate</button></div>
+          </form>
+          <div id="atkOut" class="pillrow"></div>
+        </section>
+
+        <section class="card">
+          <header class="section-head"><h2>Save DC</h2></header>
+          <form id="calc-save" class="grid cols-5 compact">
+            <label class="field"><span>Save Bonus</span>
+              <select id="sv-bonus">
+                <option value="">—</option>
+                <option>+0</option><option>+1</option><option>+2</option><option>+3</option><option>+4</option>
+                <option>+5</option><option>+6</option><option>+7</option><option>+8</option><option>+9</option>
+              </select>
+            </label>
+            <label class="field"><span>DC</span>
+              <select id="sv-dc">
+                <option value="">—</option>
+                <option>12</option><option>13</option><option>14</option><option>15</option><option>16</option>
+                <option>17</option><option>18</option><option>19</option><option>20</option><option>21</option>
+              </select>
+            </label>
+            <label class="field"><span>Advantage</span>
+              <select id="sv-adv">
+                <option value="normal">Normal</option>
+                <option value="adv">Advantage</option>
+                <option value="dis">Disadvantage</option>
+              </select>
+            </label>
+            <label class="field"><span>Half on Save?</span>
+              <select id="sv-half">
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </label>
+            <div class="field align-end"><button class="btn" type="submit">Calculate</button></div>
+          </form>
+          <div id="svOut" class="pillrow"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap footer tiny muted">
+    <div>Storage keys: <code>tp_cc_characters</code> (party), <code>tp_dm_encounters</code> (encounter library)</div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </footer>
+
+  <script src="./app.js"></script>
 </body>
 </html>
