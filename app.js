@@ -1066,6 +1066,270 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     mo.observe(dmRoot, { attributes: true, subtree: true, childList: true });
   }
 })();
+/* 
+
+/* ========================================================================
+   TabletopPals — Feedback Modal (self-contained)
+   Paste at END OF FILE in DocumentsTabletopPals/app.js
+   ====================================================================== */
+(() => {
+  // --- CONFIG ----------------------------------------------------------------
+  // Replace with your Formspree endpoint (e.g., https://formspree.io/f/abcdxyz)
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynlj";
+  const FALLBACK_EMAIL     = "matthewmarais14@gmail.com";          // mailto fallback
+  const QUEUE_KEY          = "tp_feedback_queue_v1";     // offline queue
+  const APP_VERSION_LABEL  = "DocumentsTabletopPals — Major Alpha";
+
+  // --- UTIL ------------------------------------------------------------------
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  function buildHTML() {
+    return `
+<button id="feedback-fab" class="feedback-fab" type="button" aria-haspopup="dialog" aria-controls="tp-feedback-modal" aria-expanded="false">
+  Feedback
+</button>
+
+<dialog id="tp-feedback-modal" aria-labelledby="feedback-title">
+  <header class="feedback-head">
+    <h2 id="feedback-title">Submit Feedback</h2>
+    <button type="button" class="feedback-close" data-feedback-close>&times; Close</button>
+  </header>
+
+  <div class="feedback-body">
+    <form id="feedback-form" novalidate>
+      <!-- honeypot -->
+      <input type="text" name="company" id="fb-company" class="feedback-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <div class="feedback-grid two">
+        <label class="feedback-field">
+          <span>Category</span>
+          <select id="fb-category" name="category" required class="feedback-select">
+            <option value="" selected disabled>Select one…</option>
+            <option>Bug</option>
+            <option>Suggestion</option>
+            <option>UI/UX</option>
+            <option>Content/Copy</option>
+            <option>Performance</option>
+            <option>Other</option>
+          </select>
+          <div class="feedback-helper">What kind of feedback is this?</div>
+        </label>
+
+        <label class="feedback-field">
+          <span>Severity (1 = tiny, 5 = blocks me)</span>
+          <div class="feedback-rating" role="radiogroup" aria-label="Severity">
+            ${[1,2,3,4,5].map(n => `
+              <label><input type="radio" name="severity" value="${n}" required><span>${n}</span></label>
+            `).join("")}
+          </div>
+          <div class="feedback-helper">Helps us triage quickly.</div>
+        </label>
+      </div>
+
+      <label class="feedback-field">
+        <span>Page / Area</span>
+        <input id="fb-where" name="where" type="text" class="feedback-input" placeholder="e.g., Encounters → Calculators → CR Budget">
+        <div class="feedback-helper">If you can, tell us where you were in the app.</div>
+      </label>
+
+      <label class="feedback-field">
+        <span>What happened / Your idea</span>
+        <textarea id="fb-details" name="details" rows="6" required class="feedback-textarea" placeholder="Describe the bug, idea, or issue…"></textarea>
+        <div class="feedback-helper">Include steps to reproduce or expected behaviour if reporting a bug.</div>
+      </label>
+
+      <div class="feedback-grid two">
+        <label class="feedback-field">
+          <span>Your name <span class="feedback-helper">(optional)</span></span>
+          <input id="fb-name" name="name" type="text" class="feedback-input" autocomplete="name">
+        </label>
+
+        <label class="feedback-field">
+          <span>Email <span class="feedback-helper">(optional, for follow-up)</span></span>
+          <input id="fb-email" name="email" type="email" class="feedback-input" autocomplete="email" placeholder="you@example.com">
+        </label>
+      </div>
+
+      <label class="feedback-checkbox">
+        <input id="fb-consent" type="checkbox" required>
+        <span>I agree to send this feedback (incl. basic device info) so you can improve the app.</span>
+      </label>
+
+      <!-- Hidden meta (auto-filled) -->
+      <input type="hidden" name="meta_userAgent" id="fb-meta-ua">
+      <input type="hidden" name="meta_viewport"  id="fb-meta-vp">
+      <input type="hidden" name="meta_timezone"  id="fb-meta-tz">
+      <input type="hidden" name="meta_url"       id="fb-meta-url">
+      <input type="hidden" name="meta_appver"    id="fb-meta-app">
+
+      <div class="feedback-actions">
+        <button class="btn" type="submit">Submit feedback</button>
+        <button class="btn ghost" type="reset">Reset</button>
+      </div>
+
+      <div id="fb-status" class="feedback-status" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</dialog>
+`;
+  }
+
+  function setStatus(msg, kind="") {
+    const el = $("#fb-status"); if(!el) return;
+    el.textContent = msg; el.className = `feedback-status ${kind}`;
+  }
+
+  function collectMeta() {
+    $("#fb-meta-ua").value  = navigator.userAgent || "";
+    $("#fb-meta-vp").value  = `${window.innerWidth}x${window.innerHeight}`;
+    try { $("#fb-meta-tz").value = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; }
+    catch { $("#fb-meta-tz").value = ""; }
+    $("#fb-meta-url").value = location.href;
+    $("#fb-meta-app").value = APP_VERSION_LABEL;
+  }
+
+  function serializeForm(form) {
+    const data = new FormData(form);
+    const obj = {};
+    for (const [k,v] of data.entries()) {
+      if (k === "company" && !v) continue; // keep hp only if filled
+      obj[k] = v;
+    }
+    return obj;
+  }
+
+  function queuePush(payload){
+    const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
+    q.push({ payload, t: Date.now() });
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+  }
+
+  async function attemptSyncQueue(){
+    const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
+    if(!q.length) return;
+    const remaining = [];
+    for(const item of q){
+      try { await sendPayload(item.payload, {silent:true}); }
+      catch { remaining.push(item); }
+    }
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
+  }
+
+  async function sendPayload(payload){
+    if(!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes("REPLACE_ME")){
+      throw new Error("Endpoint not configured");
+    }
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if(!res.ok){
+      const msg = await res.text().catch(()=>res.statusText);
+      throw new Error(`Submit failed: ${res.status} ${msg}`);
+    }
+    return res.json().catch(()=> ({}));
+  }
+
+  function buildMailtoURL(payload){
+    const subject = encodeURIComponent(`[TP Feedback] ${payload.category || "General"} (sev ${payload.severity || "?"})`);
+    const lines = [];
+    lines.push(`From: ${payload.name || "Anonymous"} <${payload.email || "n/a"}>`);
+    lines.push(`Where: ${payload.where || "n/a"}`);
+    lines.push(`Severity: ${payload.severity || "n/a"}`);
+    lines.push("");
+    lines.push(payload.details || "");
+    lines.push("");
+    lines.push("--- meta ---");
+    lines.push(`URL: ${payload.meta_url || ""}`);
+    lines.push(`UA: ${payload.meta_userAgent || ""}`);
+    lines.push(`Viewport: ${payload.meta_viewport || ""}`);
+    lines.push(`TZ: ${payload.meta_timezone || ""}`);
+    lines.push(`App: ${payload.meta_appver || ""}`);
+    const body = encodeURIComponent(lines.join("\n"));
+    return `mailto:${FALLBACK_EMAIL}?subject=${subject}&body=${body}`;
+  }
+
+  function openModal(){
+    const dlg = $("#tp-feedback-modal");
+    if(!dlg.open) dlg.showModal();
+    $("#feedback-fab")?.setAttribute("aria-expanded", "true");
+    collectMeta();
+    $("#fb-category")?.focus();
+  }
+  function closeModal(){
+    const dlg = $("#tp-feedback-modal");
+    if(dlg.open) dlg.close();
+    $("#feedback-fab")?.setAttribute("aria-expanded", "false");
+  }
+
+  // Inject UI + wire events once DOM is ready
+  document.addEventListener("DOMContentLoaded", () => {
+    // Inject HTML once
+    const container = document.createElement("div");
+    container.className = "feedback-wrap";
+    container.innerHTML = buildHTML();
+    document.body.appendChild(container);
+
+    // Openers: floating button + any element with data-action="open-feedback"
+    document.body.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-action='open-feedback'], #feedback-fab");
+      if(t){ e.preventDefault(); openModal(); }
+      if(e.target.matches("[data-feedback-close]")) { e.preventDefault(); closeModal(); }
+    });
+
+    // Close on <esc>
+    $("#tp-feedback-modal")?.addEventListener("cancel", (e) => { e.preventDefault(); closeModal(); });
+
+    // Form handling
+    const form = $("#feedback-form");
+    form?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setStatus("");
+      const hp = $("#fb-company");
+      if(hp && hp.value){ setStatus("Bot detected.", "error"); return; }
+
+      // Required checks
+      const category = $("#fb-category");
+      const details  = $("#fb-details");
+      const consent  = $("#fb-consent");
+      if(!category.value){ setStatus("Please select a category.", "error"); category.focus(); return; }
+      if(!details.value.trim()){ setStatus("Please describe your feedback.", "error"); details.focus(); return; }
+      if(!consent.checked){ setStatus("Please agree to send your feedback.", "error"); consent.focus(); return; }
+
+      const payload = serializeForm(form);
+
+      if(!navigator.onLine){
+        queuePush(payload);
+        form.reset();
+        collectMeta();
+        setStatus("You’re offline. Saved locally — we’ll auto-send when you’re back online.", "success");
+        return;
+      }
+
+      try {
+        await sendPayload(payload);
+        form.reset();
+        collectMeta();
+        setStatus("Thank you! Your feedback has been submitted. 🎉", "success");
+      } catch (err) {
+        console.error(err);
+        setStatus("Couldn’t submit automatically. Click to send by email instead.", "error");
+        // Append mailto fallback button
+        const a = document.createElement("a");
+        a.href = buildMailtoURL(payload);
+        a.textContent = "Open email draft";
+        a.className = "btn ghost";
+        a.style.marginLeft = "10px";
+        $("#fb-status").appendChild(a);
+      }
+    });
+
+    // Try to sync any offline feedback when back online
+    window.addEventListener("online", attemptSyncQueue);
+  });
+})();
 
 /* ========= Expose for onclicks ========= */
 window.nav=nav;

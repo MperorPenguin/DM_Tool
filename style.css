@@ -360,3 +360,57 @@ button, .btn{ font: inherit; touch-action: manipulation; }
 #logbook-frame { display: block; }
 
 /* (Removed font overrides like "Arvo" and ".use-aptos") */
+
+/* === Feedback Modal (TabletopPals) ======================================= */
+.feedback-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+  background: var(--color-primary);
+  color: #0b0b0b;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-weight: 600;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+}
+.feedback-fab:hover   { background: var(--color-primary-600); }
+.feedback-fab:active  { background: var(--color-primary-700); }
+.feedback-fab:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+/* Native dialog shell */
+#tp-feedback-modal {
+  width: min(720px, 92vw);
+  max-height: 92vh;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+#tp-feedback-modal::backdrop {
+  background: rgba(0,0,0,.55);
+}
+
+/* Modal layout */
+.feedback-wrap { padding: 20px; }
+.feedback-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--color-border);
+}
+.feedback-head h2 { margin: 0; font-size: 1.25rem; }
+.feedback-close {
+  background: transparent; color: var(--color-text);
+  border: 1px solid var(--color-border); border-radius: 10px; padding: 8px 10px;
+}
+.feedback-close:hover { background: color-mix(in srgb, var(--color-text) 10%, transparent); }
+
+.feedback-body { padding: 20px; }
+.feedback-grid { display: grid; gap: 12px; }
+@media (min-width: 720px){
+  .feedback-grid.two { grid-template-columns: 1fr 1fr; }
+}
+
+/* Fields */
+.feedback-field { display:
