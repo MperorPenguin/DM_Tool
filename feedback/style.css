@@ -1,6 +1,6 @@
 @import url("../CSS/theme.css");
 
-/* legacy aliases if older CSS expects them (safe to keep) */
+/* legacy aliases (safe to keep) */
 :root{
   --lime-green:    var(--color-primary);
   --lime-600:      var(--color-primary-600);
@@ -15,12 +15,13 @@ html, body { background: var(--color-surface-1); color: var(--color-text); font-
 
 .wrap { max-width: 960px; margin: 0 auto; padding: 24px; }
 .page-head h1 { margin: 0 0 6px; }
-.muted { opacity: 0.8; }
+.muted { opacity: 0.85; }
 
 .card { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: 14px; padding: 20px; }
 .section-head h2 { margin: 0 0 8px; }
 
-.field { display: grid; gap: 8px; margin: 12px 0; }
+/* Fields */
+.field { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; min-width: 0; }
 .field > span { font-weight: 600; }
 .field .helper { opacity: 0.75; }
 
@@ -33,13 +34,24 @@ textarea{
   border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 10px 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 textarea { resize: vertical; min-height: 120px; }
 
-.checkbox { grid-auto-flow: column; grid-template-columns: 24px 1fr; align-items: start; }
+/* Checkbox line */
+.checkbox { display: grid; grid-template-columns: 24px 1fr; align-items: start; gap: 10px; }
 .checkbox input { margin-top: 4px; }
 
+/* Two-column layout that won’t squish */
+.grid.two { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 700px){
+  .grid.two { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+}
+
+/* Buttons */
 .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
 .btn, button {
   background: var(--color-primary);
@@ -53,19 +65,21 @@ textarea { resize: vertical; min-height: 120px; }
 .btn:active  { background: var(--color-primary-700); }
 .btn.ghost { background: transparent; color: var(--color-primary); border-color: var(--color-primary); }
 .btn.ghost:hover { background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
+.btn.small { padding: 6px 10px; font-size: .95rem; }
 
+/* Submit gating visual */
+.actions .btn[disabled]{ opacity:.55; cursor:not-allowed; filter:grayscale(.15); }
+
+/* Status text */
 .status { margin-top: 14px; min-height: 1.5em; }
 .status.success { color: #8ef0a6; }
 .status.error   { color: #ffb3b3; }
-.hp { position: absolute !important; left: -9999px !important; }
 
-.grid.two { display: grid; gap: 12px; grid-template-columns: 1fr; }
-@media (min-width: 700px){
-  .grid.two { grid-template-columns: 1fr 1fr; }
-}
+/* Honeypot: fully hidden so it can’t overlap */
+.hp { display: none !important; }
 
 /* Severity radio “pills” */
-.rating { display: flex; gap: 8px; }
+.rating { display: flex; gap: 8px; flex-wrap: wrap; }
 .rating input { position: absolute; opacity: 0; }
 .rating label {
   position: relative;
@@ -85,63 +99,6 @@ textarea { resize: vertical; min-height: 120px; }
   display: inline-block;
   padding: 6px 10px;
 }
-/* Harden two-column grid against long content/overlays */
-.grid.two { grid-template-columns: 1fr; }
-@media (min-width: 700px){
-  .grid.two { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
-}
 
-/* Make fields flex columns so injected icons (e.g., NordPass) don’t break layout */
-label.field, div.field {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-  min-width: 0;
-}
-
-/* Ensure controls fill their cell and don’t overflow */
-input[type="text"],
-input[type="email"],
-select,
-textarea { width: 100%; max-width: 100%; box-sizing: border-box; }
-
-/* Let severity pills wrap on small widths */
-.rating { flex-wrap: wrap; }
-/* === Feedback close-button fix === */
-
-/* Put title and Close into their own header row */
-.feedback-head{
-  display: grid;
-  grid-template-columns: 1fr auto; /* title | Close */
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border);
-}
-.feedback-head h2{ margin: 0; }
-
-/* Neutralize the global "button" styling just for this Close button */
-button.feedback-close{
-  all: unset;                   /* wipe global button styles */
-  display: inline-block;
-  padding: 8px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  background: transparent;      /* no green fill */
-  color: var(--color-text);
-  font-family: var(--font-body);
-  line-height: 1;
-  cursor: pointer;
-}
-button.feedback-close:hover{
-  background: color-mix(in srgb, var(--color-text) 10%, transparent);
-}
-button.feedback-close:active{
-  background: color-mix(in srgb, var(--color-text) 16%, transparent);
-}
-button.feedback-close:focus-visible{
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
+/* Alias row layout */
+.alias-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }

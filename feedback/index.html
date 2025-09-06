@@ -11,94 +11,100 @@
   <header class="page-head">
     <div class="wrap">
       <h1>Submit Feedback</h1>
-      <p class="muted">Bugs, suggestions, UX issues, content fixes—anything. Thank you! 🙌</p>
+      <p class="muted">
+        Thanks for helping improve TabletopPals. Share bugs, ideas, or copy fixes.
+        Name is optional — use <em>Use random alias</em> if you’d rather stay anonymous.
+      </p>
     </div>
   </header>
 
-    <main class="wrap">
-      <section class="card">
-        <header class="section-head">
-          <h2>Tell us what you found</h2>
-        </header>
+  <main class="wrap">
+    <section class="card">
+      <header class="section-head">
+        <h2>Tell us what you found</h2>
+      </header>
 
-        <form id="feedback-form" novalidate>
-          <!-- Honeypot (anti-bot) -->
-          <input type="text" name="company" id="company" autocomplete="off" tabindex="-1" aria-hidden="true" class="hp">
+      <form id="feedback-form" novalidate>
+        <!-- Honeypot (anti-bot, hidden by CSS) -->
+        <input type="text" name="company" id="company" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
-          <div class="grid two">
-            <label class="field">
-              <span>Category</span>
-              <select name="category" id="category" required>
-                <option value="" selected disabled>Select one…</option>
-                <option>Bug</option>
-                <option>Suggestion</option>
-                <option>UI/UX</option>
-                <option>Content/Copy</option>
-                <option>Performance</option>
-                <option>Other</option>
-              </select>
-              <div class="helper tiny">What kind of feedback is this?</div>
-            </label>
+        <div class="grid two">
+          <label class="field">
+            <span>Category</span>
+            <select name="category" id="category" required>
+              <option value="" selected disabled>Select one…</option>
+              <option>Bug</option>
+              <option>Suggestion</option>
+              <option>UI/UX</option>
+              <option>Content/Copy</option>
+              <option>Performance</option>
+              <option>Other</option>
+            </select>
+            <div class="helper tiny">What kind of feedback is this?</div>
+          </label>
 
-            <label class="field">
-              <span>Severity (1 = tiny, 5 = blocks me)</span>
-              <div class="rating">
-                <label><input type="radio" name="severity" value="1" required><span>1</span></label>
-                <label><input type="radio" name="severity" value="2"><span>2</span></label>
-                <label><input type="radio" name="severity" value="3"><span>3</span></label>
-                <label><input type="radio" name="severity" value="4"><span>4</span></label>
-                <label><input type="radio" name="severity" value="5"><span>5</span></label>
-              </div>
-              <div class="helper tiny">Helps us triage quickly.</div>
-            </label>
+          <div class="field">
+            <span>Severity (1 = tiny, 5 = blocks me)</span>
+            <div class="rating" role="radiogroup" aria-label="Severity">
+              <label><input type="radio" name="severity" value="1" required><span>1</span></label>
+              <label><input type="radio" name="severity" value="2"><span>2</span></label>
+              <label><input type="radio" name="severity" value="3"><span>3</span></label>
+              <label><input type="radio" name="severity" value="4"><span>4</span></label>
+              <label><input type="radio" name="severity" value="5"><span>5</span></label>
+            </div>
+            <div class="helper tiny">Helps us triage quickly.</div>
           </div>
+        </div>
 
+        <label class="field">
+          <span>Page / Area</span>
+          <input type="text" name="where" id="where" placeholder="e.g., Encounters → Calculators → CR Budget" />
+          <div class="helper tiny">If you can, tell us where you were in the app.</div>
+        </label>
+
+        <label class="field">
+          <span>What happened / Your idea</span>
+          <textarea name="details" id="details" rows="6" required placeholder="Describe the bug, idea, or issue…"></textarea>
+          <div class="helper tiny">Include steps to reproduce or expected behaviour if reporting a bug.</div>
+        </label>
+
+        <div class="grid two">
           <label class="field">
-            <span>Page / Area</span>
-            <input type="text" name="where" id="where" placeholder="e.g., Encounters → Calculators → CR Budget" />
-            <div class="helper tiny">If you can, tell us where you were in the app.</div>
-          </label>
-
-          <label class="field">
-            <span>What happened / Your idea</span>
-            <textarea name="details" id="details" rows="6" required placeholder="Describe the bug, idea, or issue…"></textarea>
-            <div class="helper tiny">Include steps to reproduce or expected behaviour if reporting a bug.</div>
-          </label>
-
-          <div class="grid two">
-            <label class="field">
-              <span>Your name <span class="tiny muted">(optional)</span></span>
+            <span>Your name <span class="tiny muted">(optional)</span></span>
+            <div class="alias-row">
               <input type="text" name="name" id="name" autocomplete="name" />
-            </label>
-
-            <label class="field">
-              <span>Email <span class="tiny muted">(optional, for follow-up)</span></span>
-              <input type="email" name="email" id="email" autocomplete="email" placeholder="you@example.com" />
-            </label>
-          </div>
-
-          <label class="field checkbox">
-            <input type="checkbox" id="consent" required />
-            <span>I agree to send this feedback (incl. basic device info) so you can improve the app.</span>
+              <button type="button" id="alias-btn" class="btn ghost small">Use random alias</button>
+            </div>
           </label>
 
-          <!-- Hidden meta filled by JS -->
-          <input type="hidden" name="meta_userAgent" id="meta_userAgent">
-          <input type="hidden" name="meta_viewport" id="meta_viewport">
-          <input type="hidden" name="meta_timezone" id="meta_timezone">
-          <input type="hidden" name="meta_url" id="meta_url">
-          <input type="hidden" name="meta_appver" id="meta_appver">
+          <label class="field">
+            <span>Email <span class="tiny muted">(optional, for follow-up)</span></span>
+            <input type="email" name="email" id="email" autocomplete="email" placeholder="you@example.com" />
+          </label>
+        </div>
 
-          <div class="actions">
-            <button class="btn" type="submit">Submit feedback</button>
-            <button class="btn ghost" type="reset">Reset</button>
-            <a class="btn ghost" href="../index.html" role="button">Back to Home</a>
-          </div>
+        <label class="field checkbox">
+          <input type="checkbox" id="consent" required />
+          <span>I agree to send this feedback (incl. basic device info) so you can improve the app.</span>
+        </label>
 
-          <div id="form-status" class="status" role="status" aria-live="polite"></div>
-        </form>
-      </section>
-    </main>
+        <!-- Hidden meta filled by JS -->
+        <input type="hidden" name="meta_userAgent" id="meta_userAgent">
+        <input type="hidden" name="meta_viewport" id="meta_viewport">
+        <input type="hidden" name="meta_timezone" id="meta_timezone">
+        <input type="hidden" name="meta_url" id="meta_url">
+        <input type="hidden" name="meta_appver" id="meta_appver">
+
+        <div class="actions">
+          <button class="btn" type="submit" id="submit-btn" disabled>Submit feedback</button>
+          <button class="btn ghost" type="reset">Reset</button>
+          <a class="btn ghost" href="../index.html" role="button">Back to Home</a>
+        </div>
+
+        <div id="form-status" class="status" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
 
   <script src="./app.js" defer></script>
 </body>
