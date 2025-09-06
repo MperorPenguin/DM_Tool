@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TabletopPals — Beta Onboarding</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="app.js"></script>
+</head>
+<body class="ob-body">
+  <main class="ob-wrap">
+    <section class="ob-card" aria-labelledby="onboarding-title">
+      <header class="ob-header">
+        <h1 id="onboarding-title">TabletopPals — Confidential Beta</h1>
+        <p class="ob-sub">Please read and accept the terms before entering.</p>
+      </header>
+
+      <section class="ob-terms" aria-labelledby="terms-title">
+        <h2 id="terms-title">Beta Evaluation Terms (Short Form)</h2>
+        <ul>
+          <li><strong>Confidential:</strong> Everything you see here is confidential. Don’t share links, screenshots, code, or assets.</li>
+          <li><strong>Evaluation-only:</strong> Use solely to evaluate and give feedback to the owner (non-commercial, internal use only).</li>
+          <li><strong>No copying/extraction:</strong> No redistribution, reverse engineering, or asset extraction.</li>
+          <li><strong>Feedback license:</strong> Feedback may be used by the owner freely to improve the product.</li>
+          <li><strong>Access control:</strong> Access may be revoked at any time.</li>
+          <li><strong>Law:</strong> England &amp; Wales.</li>
+        </ul>
+        <p class="ob-fineprint">By continuing, you agree to the above and the full Evaluation License contained in the repository/docs.</p>
+      </section>
+
+      <form class="ob-consent" id="consent-form">
+        <label class="ob-check">
+          <input type="checkbox" id="agree" /> <span>I have read and agree to the Beta Evaluation Terms</span>
+        </label>
+
+        <p id="consent-msg" class="ob-msg" aria-live="polite"></p>
+
+        <!-- Update href if your app entry file is different -->
+        <a id="enterBtn" class="btn ob-enter disabled" href="../index.html" aria-disabled="true">Enter Beta</a>
+
+        <div class="ob-help">
+          <p><strong>Tip:</strong> If the button stays disabled, tick the checkbox above. For feedback, use the in-app form or your private issue tracker.</p>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

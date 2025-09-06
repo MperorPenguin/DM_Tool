@@ -10,6 +10,10 @@
   <header class="docs-header">
     <div class="wrap">
       <h1 class="title">TabletopPals — User Guide</h1>
+      <div class="meta">
+        <span class="badge">Major Alpha</span>
+        <span class="muted">Last updated: <span id="last-updated"></span></span>
+      </div>
       <div class="actions">
         <a class="btn ghost" href="../index.html">← Back to app</a>
         <button id="btn-print" class="btn" type="button" title="Print / Save as PDF">Print / PDF</button>
@@ -30,90 +34,205 @@
     </aside>
 
     <article class="doc">
-      <!-- Tip: edit/add sections below. Use <section> with an <h2 id="..."> to auto-appear in the TOC. -->
+      <!-- Getting started -->
       <section>
         <h2 id="getting-started">Getting started</h2>
         <details open>
           <summary>Quick start</summary>
-          <p>Open the app’s landing page and use the tiles to navigate. The interface uses a dark theme and keyboard-friendly focus rings. Buttons, links, and inputs follow the primary accent colour from our theme.</p>
           <ul>
-            <li><strong>Navigation:</strong> Tabs and tiles switch major tools.</li>
-            <li><strong>Offline:</strong> Most pages are static and fast; keep your browser cache enabled for speed.</li>
-            <li><strong>Accessibility:</strong> Use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move; <kbd>Enter</kbd>/<kbd>Space</kbd> to activate.</li>
+            <li><strong>Landing tiles:</strong> Use the home tiles to open each tool: Dice, DM Panel, Encounters, Notes, Logbook, Characters, Feedback.</li>
+            <li><strong>Mobile:</strong> Tap the <strong>burger menu</strong> to reveal navigation; swipe the pill row horizontally (no squish).</li>
+            <li><strong>Keyboard:</strong> <kbd>Tab</kbd>/<kbd>Shift</kbd>+<kbd>Tab</kbd> moves focus, <kbd>Enter</kbd>/<kbd>Space</kbd> activates. Visible focus rings are enabled across the app.</li>
           </ul>
         </details>
-
         <details>
           <summary>Look & feel (theme)</summary>
-          <p>The entire app (including this guide) inherits colours and typography from <code>DocumentsTabletopPals/CSS/theme.css</code>. To change the global font, edit <code>--font-body</code> in that file.</p>
+          <p>The entire app inherits colours/typography from <code>DocumentsTabletopPals/CSS/theme.css</code>. Edit tokens there only; all pages import it as the first line. Global font: change <code>--font-body</code>.</p>
+          <pre><code>:root{
+  --color-primary:     #84dd63;
+  --color-primary-600: #6baa75;
+  --color-primary-700: #4a7b57;
+  --color-surface-1:   #121416;
+  --color-surface-2:   #1b2024;
+  --color-border:      #30363d;
+  --color-text:        #eaf2ec;
+  --input-bg:          #0f1517;
+  --font-body: Poppins, system-ui, -apple-system, "Segoe UI", Roboto, Arimo, Helvetica, Arial, sans-serif;
+}</code></pre>
         </details>
       </section>
 
+      <!-- Navigation & Mobile -->
       <section>
-        <h2 id="dm-panel">DM Panel & Dice</h2>
+        <h2 id="navigation-mobile">Navigation & mobile</h2>
         <details open>
-          <summary>DM Panel overview</summary>
-          <p>The DM panel groups controls for quick reference. Use the tabs to toggle features. Data persists locally in your browser.</p>
-        </details>
-
-        <details>
-          <summary>Dice roller</summary>
-          <p>Choose a die (e.g., d20), add modifiers, and roll. Keyboard tip: type the number then press <kbd>Enter</kbd>.</p>
-        </details>
-      </section>
-
-      <section>
-        <h2 id="encounters">Encounters</h2>
-        <details open>
-          <summary>Setup</summary>
-          <p>Set party size/levels, choose enemies, and review difficulty. Use dropdowns and presets where available to minimise typing.</p>
-        </details>
-        <details>
-          <summary>Calculators</summary>
-          <p>Use the calculators tab for quick maths (CR, XP budgets, etc.).</p>
-        </details>
-      </section>
-
-      <section>
-        <h2 id="characters">Character Manager</h2>
-        <details open>
-          <summary>Creating & editing</summary>
-          <p>Add characters with species, class, and other attributes. Selected options show a clear “active” state to confirm your pick.</p>
-        </details>
-        <details>
-          <summary>Party sync</summary>
-          <p>Party info is shared locally so you can view characters from the DM Party tab (uses a shared local storage key).</p>
-        </details>
-      </section>
-
-      <section>
-        <h2 id="feedback">Feedback & troubleshooting</h2>
-        <details open>
-          <summary>Submitting feedback</summary>
-          <p>If automatic submission fails, use the “send by email” fallback link. Ensure you’ve entered a valid email format.</p>
-        </details>
-        <details>
-          <summary>Common fixes</summary>
+          <summary>Burger menu (≤960px)</summary>
+          <div class="callout info">
+            <p>The header shows a burger button on small screens. Tapping it toggles the nav (uses <code>aria-expanded</code>). The nav row is horizontally scrollable with momentum—no clipped labels.</p>
+          </div>
           <ul>
-            <li><strong>Hard refresh:</strong> <kbd>Ctrl/Cmd</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> after theme changes.</li>
-            <li><strong>Tiles not updating:</strong> Make sure each page’s stylesheet imports <code>theme.css</code> as line 1.</li>
+            <li><strong>Close on select:</strong> Picking any menu item auto-closes the menu.</li>
+            <li><strong>Resize awareness:</strong> The menu resets to closed if you resize up to desktop.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Accessibility</summary>
+          <p>All interactive items have keyboard focus styles using the primary token. Aim for 4.5:1 contrast (met by Base Alpha).</p>
+        </details>
+      </section>
+
+      <!-- Modules -->
+      <section>
+        <h2 id="modules">Modules</h2>
+
+        <details open>
+          <summary>Dice</summary>
+          <p>Pick die type (e.g., d20), set modifiers, press <kbd>Enter</kbd> to roll. Results log inline.</p>
+        </details>
+
+        <details>
+          <summary>DM Panel</summary>
+          <p>Tabbed controls for quick reference. Data persists locally in your browser.</p>
+        </details>
+
+        <details>
+          <summary>Encounter Builder</summary>
+          <p>Set party size/levels, add enemies, review difficulty/XP. New UI trims typing by using dropdowns and presets where present.</p>
+        </details>
+
+        <details>
+          <summary>Notes & Logbook</summary>
+          <p>Plain, fast, saved locally. Search by browser find (<kbd>Ctrl/Cmd</kbd> + <kbd>F</kbd>).</p>
+        </details>
+
+        <details>
+          <summary>Character Manager</summary>
+          <ul>
+            <li><strong>Species pills:</strong> Selected pill shows an active state (✓ + “Selected”).</li>
+            <li><strong>Party sync:</strong> The DM Party tab reads from the shared local key <code>tp_cc_characters</code>.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>Feedback</summary>
+          <p>Submits via the configured endpoint. If auto-submit fails, an in-app prompt offers a “send by email” fallback. Ensure the email field is a valid format.</p>
+        </details>
+      </section>
+
+      <!-- Theming -->
+      <section>
+        <h2 id="theming">Theming & tokens</h2>
+        <details open>
+          <summary>Single source of truth</summary>
+          <p>Only change colours/fonts in <code>CSS/theme.css</code>. Every stylesheet imports it first:</p>
+          <pre><code>@import url("../CSS/theme.css");</code></pre>
+          <p>Legacy aliases map old names (<code>--lime-green</code>, <code>--panel</code>, …) to the central tokens.</p>
+        </details>
+        <details>
+          <summary>Components</summary>
+          <ul>
+            <li><strong>Buttons:</strong> filled primary; hover/active use <code>--color-primary-600</code>/<code>-700</code>; focus ring uses <code>--color-primary</code>.</li>
+            <li><strong>Panels:</strong> <code>--color-surface-2</code> with <code>--color-border</code>.</li>
+            <li><strong>Inputs:</strong> <code>--input-bg</code> with <code>--color-text</code>.</li>
           </ul>
         </details>
       </section>
 
+      <!-- Data & privacy -->
       <section>
-        <h2 id="keyboard-shortcuts">Keyboard shortcuts</h2>
+        <h2 id="data-privacy">Data & privacy</h2>
         <details open>
-          <summary>Handy keys</summary>
+          <summary>Where data lives</summary>
           <ul>
-            <li><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd>: move focus</li>
-            <li><kbd>Enter</kbd>/<kbd>Space</kbd>: activate focused control</li>
+            <li><strong>Local-first:</strong> Most data (notes, characters, DM state) is stored in your browser (e.g., <code>localStorage</code> key <code>tp_cc_characters</code>).</li>
+            <li><strong>Feedback:</strong> posts to the configured endpoint; if unavailable, you can send via email fallback.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Offline</summary>
+          <p>The app is static and works offline once cached by your browser. Hard refresh after theme changes: <kbd>Ctrl/Cmd</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>.</p>
+        </details>
+      </section>
+
+      <!-- Troubleshooting -->
+      <section>
+        <h2 id="troubleshooting">Troubleshooting</h2>
+        <details open>
+          <summary>Common fixes</summary>
+          <ul>
+            <li><strong>Buttons look squished on mobile:</strong> This is fixed by the mobile nav strip. Swipe horizontally; use the burger to reveal/hide the strip.</li>
+            <li><strong>Tiles wrong colour:</strong> Ensure no local gradients override tokens. The home encounter/character tiles use panel styles.</li>
+            <li><strong>Feedback 422:</strong> Usually an invalid email field; correct the address or use the email fallback.</li>
+          </ul>
+        </details>
+      </section>
+
+      <!-- Patch notes -->
+      <section>
+        <h2 id="patch-notes">Patch notes</h2>
+
+        <details open>
+          <summary>2025-09-06 — Mobile navigation & Guide</summary>
+          <ul>
+            <li>Added mobile <strong>burger menu</strong> (≤960px) with <code>aria-expanded</code> toggle.</li>
+            <li>Nav pills become a <strong>horizontal scroll strip</strong> (no squish, snap scrolling, min tap targets).</li>
+            <li>Introduced this themed <strong>User Guide</strong> module with search, TOC, and print-to-PDF.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>2025-09-03 — Visual + UX</summary>
+          <ul>
+            <li>Species pills show explicit <em>Selected</em> state in Character Manager.</li>
+            <li>Home tiles for Encounters/Characters aligned to panel style (removed gradient).</li>
+            <li>Focus ring standardised to <code>--color-primary</code> across components.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>2025-09-01 to 09-05 — Stability</summary>
+          <ul>
+            <li>Feedback: improved validation and email fallback path for offline/endpoint issues.</li>
+            <li>Theme tokens centralised; all pages import <code>theme.css</code> first.</li>
+          </ul>
+        </details>
+      </section>
+
+      <!-- Legal -->
+      <section>
+        <h2 id="legal">Legal & Copyright</h2>
+
+        <details open>
+          <summary>Ownership & license</summary>
+          <div class="legal-card">
+            <p><strong>© 2025 Matthew — TabletopPals.</strong> All rights reserved.</p>
+            <ul>
+              <li>All original code, UI designs, text, icons, and images in this project are the intellectual property of Matthew.</li>
+              <li><strong>No redistribution, reselling, sublicensing, or public posting</strong> of the code, assets, or compiled app without written permission.</li>
+              <li><strong>No training or fine-tuning of AI models</strong> on this content without written permission.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>Trademarks & third-party</summary>
+          <ul>
+            <li><em>Dungeons & Dragons</em> and all related marks are trademarks of Wizards of the Coast LLC. TabletopPals is an independent fan-made tool and is not affiliated with, endorsed, or sponsored by Wizards of the Coast.</li>
+            <li>Any third-party libraries or services remain the property of their respective owners and are used under their licenses.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>Artwork & icon policy</summary>
+          <ul>
+            <li>Enemy icon set and UI artwork are original works made for TabletopPals. Do not copy, reuse, or derive without permission.</li>
+            <li>Avoid use of WotC “Product Identity” creatures/looks; use generic fantasy archetypes only.</li>
           </ul>
         </details>
       </section>
 
       <footer class="doc-footer">
-        <p>Last updated: <span id="last-updated"></span></p>
+        <p class="muted">For permission requests or issues, use the in-app <strong>Feedback</strong> link.</p>
       </footer>
     </article>
   </main>
