@@ -1107,7 +1107,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
   }
   async function sendPayload(payload){
-    if(!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes("REPLACE_ME")) throw new Error("Endpoint not configured");
+    if(!FORMSPREE_ENDPOINT || const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynlj";
+")) throw new Error("Endpoint not configured");
     const res = await fetch(FORMSPREE_ENDPOINT, {
       method:"POST", headers:{ "Content-Type":"application/json", "Accept":"application/json" }, body: JSON.stringify(payload)
     });
