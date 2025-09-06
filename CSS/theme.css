@@ -183,10 +183,7 @@ header.wrap.bar { position: sticky; top: 0; z-index: 50; background: var(--color
   }
 }
 
-/* -------------------- Optional burger (CSS-only styling)
-   To activate: add <button class="burger btn ghost" aria-expanded="false"></button>
-   near your nav in the header. Toggling aria-expanded=true can be done by tiny JS,
-   but the styles below are ready and harmless if the button doesn’t exist. */
+/* -------------------- Optional burger (CSS-only styling) */
 .burger {
   --burger-size: 24px;
   position: relative;
@@ -215,8 +212,8 @@ header.wrap.bar { position: sticky; top: 0; z-index: 50; background: var(--color
   --panel:         var(--color-surface-2);
   --panel-bg:      var(--color-surface-2);
 }
-/* === Global Legal Notice Bar (visual-only, no HTML/JS changes) === */
-/* Edit this one line to change the message */
+
+/* === Global Legal Notice Bar (legacy, stays until every page has real footer) === */
 :root{
   --legal-notice: "TabletopPals™ — © 2025 Matthew. All rights reserved. Not affiliated with Wizards of the Coast. SRD content © Wizards of the Coast (CC-BY-4.0).";
   --legal-footer-height: 40px;
@@ -242,14 +239,42 @@ body::after{
   white-space: pre-wrap; /* wrap nicely on narrow screens */
 }
 
+/* If a real footer exists on the page, hide the pseudo-footer and remove padding */
+@supports selector(body:has(footer.site-footer)) {
+  body:has(footer.site-footer)::after { display: none; }
+  body:has(footer.site-footer) { padding-bottom: 0; }
+}
+
 /* Smaller screens: slightly taller bar + smaller text */
 @media (max-width: 480px){
   :root{ --legal-footer-height: 48px; }
   body::after{ font-size: 11px; padding: 10px 8px; }
 }
 
-/* Do not show in print */
+/* Do not show pseudo-legal bar in print */
 @media print{
   body{ padding-bottom: 0; }
   body::after{ display: none; }
+  .site-footer{ display:none; }
+}
+
+/* === Global site footer (HTML-based) === */
+.site-footer{
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border-top: 1px solid var(--color-border);
+  font: 12px/1.6 var(--font-body);
+  padding: 14px 16px;
+}
+.site-footer p{ margin: 0; text-align: center; }
+.site-footer a{
+  color: var(--color-primary);
+  text-decoration: none;
+  border-bottom: 1px dotted transparent;
+}
+.site-footer a:hover{ border-bottom-color: currentColor; }
+.site-footer .sep{ opacity: .6; margin: 0 8px; }
+
+@media (max-width: 480px){
+  .site-footer{ font-size: 11px; padding: 12px 12px; }
 }
