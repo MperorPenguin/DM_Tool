@@ -31,11 +31,20 @@ function collectMeta(){
 
 // Turn form into plain object (skips empty honeypot)
 function serializeForm(form){
+  const data = new FormData(form);
+  const obj = {};
+  for(const [k,v] of data.entries()){
+    if(k === "company" && !v) continue; // honeypot empty -> ignore
+    obj[k] = v;
+  }
+  return obj;
+}
+
 // Ensure payload always has minimally acceptable fields for Formspree
 function normalizePayload(p){
   const q = { ...p };
 
-  // Required-ish fields for our logic
+  // Default category/severity if missing (for older queued items)
   if(!q.category) q.category = "Other";
   if(!q.severity) q.severity = "3";
 
@@ -52,15 +61,6 @@ function normalizePayload(p){
   q.message = `${q.category} (sev ${q.severity}) — ${q.details}`;
 
   return q;
-}
-
-  const data = new FormData(form);
-  const obj = {};
-  for(const [k,v] of data.entries()){
-    if(k === "company" && !v) continue; // honeypot empty -> ignore
-    obj[k] = v;
-  }
-  return obj;
 }
 
 // Offline queue
@@ -157,7 +157,7 @@ function updateSubmitState(){
 // Init
 window.addEventListener("DOMContentLoaded", () => {
   collectMeta();
-  attemptSyncQueue().catch(()=>{});
+  attemptSyncQueue().catch(()=>{}); // try to flush any old items
 
   const form = byId("feedback-form");
   const aliasBtn = byId("alias-btn");
@@ -165,7 +165,9 @@ window.addEventListener("DOMContentLoaded", () => {
   // Input wiring for gating
   form.addEventListener("input", updateSubmitState);
   form.addEventListener("change", updateSubmitState);
-  form.addEventListener("reset", () => { setTimeout(() => { collectMeta(); updateSubmitState(); setStatus(""); }, 0); });
+  form.addEventListener("reset", () => {
+    setTimeout(() => { collectMeta(); updateSubmitState(); setStatus(""); }, 0);
+  });
   updateSubmitState();
 
   // Alias click
@@ -200,7 +202,7 @@ window.addEventListener("DOMContentLoaded", () => {
     } catch(err){
       console.error(err);
       // mailto fallback
-     const payload = normalizePayload(serializeForm(form));
+      const payload = normalizePayload(serializeForm(form));
       const mailto = buildMailtoURL(payload);
       setStatus("Couldn’t submit automatically. Click to send by email instead.", "error");
       const a = document.createElement("a");
