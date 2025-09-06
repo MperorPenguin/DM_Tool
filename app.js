@@ -1066,7 +1066,6 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     mo.observe(dmRoot, { attributes: true, subtree: true, childList: true });
   }
 })();
-/* 
 
 /* ========================================================================
    TabletopPals — Feedback Modal (self-contained)

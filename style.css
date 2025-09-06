@@ -394,7 +394,7 @@ button, .btn{ font: inherit; touch-action: manipulation; }
 }
 
 /* Modal layout */
-.feedback-wrap { padding: 20px; }
+.feedback-wrap { padding: 0px; }
 .feedback-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 20px; border-bottom: 1px solid var(--color-border);
