@@ -215,3 +215,41 @@ header.wrap.bar { position: sticky; top: 0; z-index: 50; background: var(--color
   --panel:         var(--color-surface-2);
   --panel-bg:      var(--color-surface-2);
 }
+/* === Global Legal Notice Bar (visual-only, no HTML/JS changes) === */
+/* Edit this one line to change the message */
+:root{
+  --legal-notice: "TabletopPals™ — © 2025 Matthew. All rights reserved. Not affiliated with Wizards of the Coast. SRD content © Wizards of the Coast (CC-BY-4.0).";
+  --legal-footer-height: 40px;
+}
+
+/* Prevent the bar covering content */
+html, body { min-height: 100%; }
+body { padding-bottom: var(--legal-footer-height); }
+
+/* The fixed footer bar, injected via CSS pseudo-element */
+body::after{
+  content: var(--legal-notice);
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 10000;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border-top: 1px solid var(--color-border);
+  font: 12px/1.4 var(--font-body);
+  text-align: center;
+  padding: 8px 12px;
+  pointer-events: none; /* non-clickable by design */
+  white-space: pre-wrap; /* wrap nicely on narrow screens */
+}
+
+/* Smaller screens: slightly taller bar + smaller text */
+@media (max-width: 480px){
+  :root{ --legal-footer-height: 48px; }
+  body::after{ font-size: 11px; padding: 10px 8px; }
+}
+
+/* Do not show in print */
+@media print{
+  body{ padding-bottom: 0; }
+  body::after{ display: none; }
+}
