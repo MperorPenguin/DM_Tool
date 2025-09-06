@@ -12,14 +12,25 @@
   <!-- Optional: add class="use-aptos" to <html> to prefer Aptos if installed -->
 </head>
 <body>
-  <!-- Top bar -->
+   <!-- Top bar -->
   <div class="top">
     <div class="inner">
       <div class="logo">
         <div class="mark"></div>
         <strong>DM Toolkit</strong>
       </div>
-      <div class="nav">
+
+      <!-- NEW: mobile burger -->
+      <button class="burger" id="burger"
+              aria-controls="site-nav"
+              aria-expanded="false"
+              aria-label="Open menu">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+
+      <div class="nav" id="site-nav">
         <button id="nav-home"      onclick="nav('home')">Home</button>
         <button id="nav-world"     onclick="nav('world')">World Map</button>
         <button id="nav-dice"      onclick="nav('dice')">Dice</button>
@@ -27,12 +38,9 @@
         <button id="nav-dm"        onclick="nav('dm')">DM</button>
         <button id="nav-encounters" onclick="window.location.href='encounters/encounters/'">Encounter Builder</button>
         <button id="nav-logbook"   onclick="nav('logbook')">Logbook</button>
-        <!-- Characters in the top nav -->
         <button id="nav-characters" onclick="nav('characters')">Characters</button>
         <a class="btn ghost" href="#" data-action="open-feedback">Give Feedback</a>
-        <a class="btn ghost" href="./docs/index.html">Help / User Guide</a></li>
-
-
+        <a class="btn ghost" href="./docs/index.html">Help / User Guide</a>
       </div>
     </div>
   </div>

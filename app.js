@@ -1315,6 +1315,31 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   });
 })();
 
+// ===== Mobile burger toggle (small, isolated) =====
+document.addEventListener('DOMContentLoaded', () => {
+  const burger = document.getElementById('burger');
+  const navEl  = document.getElementById('site-nav');
+
+  if (!burger || !navEl) return;
+
+  const closeMenu = () => burger.setAttribute('aria-expanded', 'false');
+
+  burger.addEventListener('click', () => {
+    const expanded = burger.getAttribute('aria-expanded') === 'true';
+    burger.setAttribute('aria-expanded', String(!expanded));
+  });
+
+  // Close after any nav action (buttons or links)
+  navEl.addEventListener('click', (e) => {
+    if (e.target.closest('button, a')) closeMenu();
+  });
+
+  // If resizing up to desktop, ensure menu is reset
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 960) closeMenu();
+  });
+});
+
 /* ========= Expose for onclicks ========= */
 window.nav=nav;
 
