@@ -1073,8 +1073,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
    ====================================================================== */
 (() => {
   // --- CONFIG ---------------------------------------------------------------
-  const FORMSPREE_ENDPOINT = "https://formspree.io/f/REPLACE_ME"; // <- put yours
-  const FALLBACK_EMAIL     = "you@example.com";                    // used in mailto
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/mdklynl"; // <- put yours
+  const FALLBACK_EMAIL     = "matthewmarais14@gmail.com";                    // used in mailto
   const QUEUE_KEY          = "tp_feedback_queue_v1";
   const APP_VERSION_LABEL  = "DocumentsTabletopPals — Major Alpha";
 
