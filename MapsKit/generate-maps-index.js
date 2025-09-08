@@ -1,49 +1,40 @@
-// generate-maps-index.js  (kept in DocumentsTabletopPals\MapsKit)
-// Builds .\assets\maps\index.json AND .\assets\maps\index.js (fallback for file://)
+// tools/generate-maps-index.js
+// Usage: npm run maps  (or)  node tools/generate-maps-index.js
+// Scans assets/maps for PNG/SVG/JPG/WEBP and writes assets/maps/index.json.
 
-const fs = require('fs');
-const path = require('path');
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 
-const ROOT     = __dirname; // MapsKit folder
-const MAPS_DIR = path.join(ROOT, 'assets', 'maps');
-const OUT_JSON = path.join(MAPS_DIR, 'index.json');
-const OUT_JS   = path.join(MAPS_DIR, 'index.js');
+const MAP_DIR = path.resolve('assets/maps');
+const OUT = path.join(MAP_DIR, 'index.json');
+const exts = new Set(['.png','.svg','.jpg','.jpeg','.webp']);
 
-const ALLOWED_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp', '.svg', '.avif']);
+function prettyName(filename){
+  const base = filename.replace(/\.[^.]+$/,'').replace(/[_\-]+/g,' ').trim();
+  return base.charAt(0).toUpperCase() + base.slice(1);
+}
 
-const toSlug  = s => String(s).toLowerCase().replace(/\.[^.]+$/, '')
-  .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-const toTitle = s => String(s).replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ')
-  .replace(/\s+/g, ' ').trim().replace(/\b\w/g, ch => ch.toUpperCase());
+async function main(){
+  try{
+    const items = await fs.readdir(MAP_DIR, { withFileTypes: true });
+    const files = items
+      .filter(d => d.isFile())
+      .map(d => d.name)
+      .filter(n => exts.has(path.extname(n).toLowerCase()))
+      .sort();
 
-function main() {
-  if (!fs.existsSync(MAPS_DIR)) {
-    console.error('[ERR] Folder not found:', MAPS_DIR);
-    process.exit(1);
+    const list = files.map((fname, i) => ({
+      id: `m${i+1}`,
+      name: prettyName(fname),
+      src: `assets/maps/${fname}`
+    }));
+
+    await fs.writeFile(OUT, JSON.stringify(list, null, 2), 'utf8');
+    console.log(`Wrote ${OUT} with ${list.length} entries.`);
+  }catch(err){
+    console.error('Failed:', err);
+    process.exitCode = 1;
   }
-
-  const files = fs.readdirSync(MAPS_DIR, { withFileTypes: true })
-    .filter(d => d.isFile())
-    .map(d => d.name)
-    .filter(n => n.toLowerCase() !== 'index.json' && n.toLowerCase() !== 'index.js')
-    .filter(n => ALLOWED_EXT.has(path.extname(n).toLowerCase()))
-    .sort((a, b) => a.localeCompare(b));
-
-  const list = files.map((filename, i) => ({
-    id: toSlug(filename) || `map-${i + 1}`,
-    name: toTitle(filename),
-    // IMPORTANT: web-friendly path (forward slashes) that matches app.js
-    src: `MapsKit/assets/maps/${filename}`
-  }));
-
-  fs.writeFileSync(OUT_JSON, JSON.stringify(list, null, 2), 'utf8');
-
-  // JS fallback for file:// — sets a global your app can read without fetch()
-  const js = 'window.__MAPS__ = ' + JSON.stringify(list, null, 2) + ';';
-  fs.writeFileSync(OUT_JS, js, 'utf8');
-
-  console.log(`[OK] Wrote ${list.length} map(s) to ${OUT_JSON}`);
-  console.log(`[OK] Wrote JS fallback to ${OUT_JS}`);
 }
 
 main();

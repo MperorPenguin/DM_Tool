@@ -52,7 +52,7 @@
   }
   function highlight(node, term) {
     if (!term) return;
-    const rx = new RegExp(`(${term.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')})`, "ig");
+    const rx = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "ig");
     const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null);
     const toReplace = [];
     while (walker.nextNode()) {
@@ -90,5 +90,6 @@
   const last = new Date(document.lastModified || Date.now());
   $("#last-updated").textContent = last.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
 
+  // Ensure correct TOC highlight on load
   setActiveFromHash();
 })();

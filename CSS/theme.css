@@ -278,13 +278,3 @@ body::after{
 @media (max-width: 480px){
   .site-footer{ font-size: 11px; padding: 12px 12px; }
 }
-/* Beta watermark (non-blocking, visual only) */
-body::after{
-  content:"TabletopPals • Confidential Beta";
-  position: fixed; inset: 0;
-  display: grid; place-items: center;
-  pointer-events: none;
-  opacity: .06; font-size: 5rem; letter-spacing: .1em;
-  color: var(--color-text);
-  mix-blend-mode: lighten;
-}
