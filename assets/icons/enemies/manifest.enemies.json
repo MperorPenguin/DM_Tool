@@ -1,0 +1,230 @@
+{
+  "version": "1.0.0",
+  "badge": "rounded-diamond-red-ring",
+  "icons": [
+    {
+      "slug": "goblin",
+      "displayName": "Goblin",
+      "type": "humanoid",
+      "tags": [
+        "small",
+        "trickster"
+      ],
+      "files": {
+        "png1024": "enemy-goblin.png",
+        "png512": "enemy-goblin-512.png",
+        "png256": "enemy-goblin-256.png",
+        "mask": "enemy-goblin--mask.png",
+        "aliasPng": "goblin.png"
+      }
+    },
+    {
+      "slug": "hobgoblin",
+      "displayName": "Hobgoblin",
+      "type": "humanoid",
+      "tags": [
+        "medium",
+        "warlike"
+      ],
+      "files": {
+        "png1024": "enemy-hobgoblin.png",
+        "png512": "enemy-hobgoblin-512.png",
+        "png256": "enemy-hobgoblin-256.png",
+        "mask": "enemy-hobgoblin--mask.png",
+        "aliasPng": "hobgoblin.png"
+      }
+    },
+    {
+      "slug": "bugbear",
+      "displayName": "Bugbear",
+      "type": "humanoid",
+      "tags": [
+        "large",
+        "hairy"
+      ],
+      "files": {
+        "png1024": "enemy-bugbear.png",
+        "png512": "enemy-bugbear-512.png",
+        "png256": "enemy-bugbear-256.png",
+        "mask": "enemy-bugbear--mask.png",
+        "aliasPng": "bugbear.png"
+      }
+    },
+    {
+      "slug": "kobold",
+      "displayName": "Kobold",
+      "type": "humanoid",
+      "tags": [
+        "small",
+        "reptilian"
+      ],
+      "files": {
+        "png1024": "enemy-kobold.png",
+        "png512": "enemy-kobold-512.png",
+        "png256": "enemy-kobold-256.png",
+        "mask": "enemy-kobold--mask.png",
+        "aliasPng": "kobold.png"
+      }
+    },
+    {
+      "slug": "orc",
+      "displayName": "Orc",
+      "type": "humanoid",
+      "tags": [
+        "large",
+        "aggressive"
+      ],
+      "files": {
+        "png1024": "enemy-orc.png",
+        "png512": "enemy-orc-512.png",
+        "png256": "enemy-orc-256.png",
+        "mask": "enemy-orc--mask.png",
+        "aliasPng": "orc.png"
+      }
+    },
+    {
+      "slug": "gnoll",
+      "displayName": "Gnoll",
+      "type": "humanoid",
+      "tags": [
+        "medium",
+        "hyena"
+      ],
+      "files": {
+        "png1024": "enemy-gnoll.png",
+        "png512": "enemy-gnoll-512.png",
+        "png256": "enemy-gnoll-256.png",
+        "mask": "enemy-gnoll--mask.png",
+        "aliasPng": "gnoll.png"
+      }
+    },
+    {
+      "slug": "bandit",
+      "displayName": "Bandit",
+      "type": "humanoid",
+      "tags": [
+        "human",
+        "rogue"
+      ],
+      "files": {
+        "png1024": "enemy-bandit.png",
+        "png512": "enemy-bandit-512.png",
+        "png256": "enemy-bandit-256.png",
+        "mask": "enemy-bandit--mask.png",
+        "aliasPng": "bandit.png"
+      }
+    },
+    {
+      "slug": "cultist",
+      "displayName": "Cultist",
+      "type": "humanoid",
+      "tags": [
+        "fanatic",
+        "cloaked"
+      ],
+      "files": {
+        "png1024": "enemy-cultist.png",
+        "png512": "enemy-cultist-512.png",
+        "png256": "enemy-cultist-256.png",
+        "mask": "enemy-cultist--mask.png",
+        "aliasPng": "cultist.png"
+      }
+    },
+    {
+      "slug": "assassin",
+      "displayName": "Assassin",
+      "type": "humanoid",
+      "tags": [
+        "stealth",
+        "killer"
+      ],
+      "files": {
+        "png1024": "enemy-assassin.png",
+        "png512": "enemy-assassin-512.png",
+        "png256": "enemy-assassin-256.png",
+        "mask": "enemy-assassin--mask.png",
+        "aliasPng": "assassin.png"
+      }
+    },
+    {
+      "slug": "archer",
+      "displayName": "Archer",
+      "type": "humanoid",
+      "tags": [
+        "ranged",
+        "hunter"
+      ],
+      "files": {
+        "png1024": "enemy-archer.png",
+        "png512": "enemy-archer-512.png",
+        "png256": "enemy-archer-256.png",
+        "mask": "enemy-archer--mask.png",
+        "aliasPng": "archer.png"
+      }
+    },
+    {
+      "slug": "guard",
+      "displayName": "Guard",
+      "type": "humanoid",
+      "tags": [
+        "armoured",
+        "watch"
+      ],
+      "files": {
+        "png1024": "enemy-guard.png",
+        "png512": "enemy-guard-512.png",
+        "png256": "enemy-guard-256.png",
+        "mask": "enemy-guard--mask.png",
+        "aliasPng": "guard.png"
+      }
+    },
+    {
+      "slug": "knight",
+      "displayName": "Knight",
+      "type": "humanoid",
+      "tags": [
+        "mounted",
+        "noble"
+      ],
+      "files": {
+        "png1024": "enemy-knight.png",
+        "png512": "enemy-knight-512.png",
+        "png256": "enemy-knight-256.png",
+        "mask": "enemy-knight--mask.png",
+        "aliasPng": "knight.png"
+      }
+    },
+    {
+      "slug": "lizardfolk",
+      "displayName": "Lizardfolk",
+      "type": "humanoid",
+      "tags": [
+        "reptilian",
+        "swamp"
+      ],
+      "files": {
+        "png1024": "enemy-lizardfolk.png",
+        "png512": "enemy-lizardfolk-512.png",
+        "png256": "enemy-lizardfolk-256.png",
+        "mask": "enemy-lizardfolk--mask.png",
+        "aliasPng": "lizardfolk.png"
+      }
+    },
+    {
+      "slug": "fish-raider",
+      "displayName": "Fish Raider",
+      "type": "humanoid",
+      "tags": [
+        "aquatic",
+        "raider"
+      ],
+      "files": {
+        "png1024": "enemy-fish-raider.png",
+        "png512": "enemy-fish-raider-512.png",
+        "png256": "enemy-fish-raider-256.png",
+        "mask": "enemy-fish-raider--mask.png",
+        "aliasPng": "fish-raider.png"
+      }
+    }
+  ]
+}
