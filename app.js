@@ -1252,17 +1252,71 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 /* ======================================================================
-   Reviewer Legal Notice — first-visit gate (root index only)
-   - Uses localStorage to remember acceptance
-   - Only activates when <body data-legal-gate="on"> is present
+   Reviewer Legal Notice — modal gate
+   Now defaults to SHOW EVERY TIME the page loads.
+   Modes available: 'always' | 'perSession' | 'daily' | 'once'
    ====================================================================== */
 (() => {
   const ENABLED = document.body && document.body.dataset.legalGate === 'on';
   if (!ENABLED) return;
 
-  // Bump VALUE to force reviewers to re-accept after policy edits.
+  // --- CONFIG -----------------------------------------------------------
+  // Set this to 'always' to show the modal on EVERY visit (your request)
+  // Other options for convenience: 'perSession', 'daily', 'once'
+  const SHOW_MODE = 'always';
+
+  // Keys (used by non-`always` modes; harmless otherwise)
   const LEGAL_ACK_KEY   = 'tp_legal_ack_v1';
   const LEGAL_ACK_VALUE = 'accepted-2025-09';
+  const SESSION_KEY     = 'tp_legal_ack_session';
+  // ---------------------------------------------------------------------
+
+  function todayKey() {
+    const d = new Date();
+    const iso = d.toISOString().slice(0,10); // YYYY-MM-DD
+    return `tp_legal_ack_day_${iso}`;
+  }
+
+  function shouldShow() {
+    try {
+      switch (SHOW_MODE) {
+        case 'always':
+          return true; // always show, no storage
+        case 'perSession':
+          return sessionStorage.getItem(SESSION_KEY) !== '1';
+        case 'daily':
+          return localStorage.getItem(todayKey()) !== '1';
+        case 'once':
+        default:
+          return localStorage.getItem(LEGAL_ACK_KEY) !== LEGAL_ACK_VALUE;
+      }
+    } catch {
+      // If storage is blocked, safest fallback is to show it
+      return true;
+    }
+  }
+
+  function recordAcceptance() {
+    try {
+      switch (SHOW_MODE) {
+        case 'always':
+          // no-op: don’t persist; it will show next load again
+          break;
+        case 'perSession':
+          sessionStorage.setItem(SESSION_KEY, '1');
+          break;
+        case 'daily':
+          localStorage.setItem(todayKey(), '1');
+          break;
+        case 'once':
+        default:
+          localStorage.setItem(LEGAL_ACK_KEY, LEGAL_ACK_VALUE);
+          break;
+      }
+    } catch {
+      // ignore
+    }
+  }
 
   function buildHTML(){
     return `
@@ -1300,20 +1354,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initGate(){
-    // Already accepted?
-    try {
-      if (localStorage.getItem(LEGAL_ACK_KEY) === LEGAL_ACK_VALUE) return;
-    } catch (e) {
-      // If storage is blocked, we'll still show the dialog each visit.
-    }
+    if (!shouldShow()) return;
 
-    // Inject dialog
     const container = document.createElement('div');
     container.innerHTML = buildHTML();
     const dlg = container.firstElementChild;
     document.body.appendChild(dlg);
 
-    // Wire controls
     const agree = dlg.querySelector('#legal-agree');
     const box   = dlg.querySelector('#legal-consent');
 
@@ -1322,19 +1369,17 @@ document.addEventListener('DOMContentLoaded', () => {
     update();
 
     agree.addEventListener('click', () => {
-      try { localStorage.setItem(LEGAL_ACK_KEY, LEGAL_ACK_VALUE); } catch (e) {}
+      recordAcceptance();
       dlg.close();
     });
 
     // Prevent closing with Esc — must make a conscious choice
     dlg.addEventListener('cancel', (ev) => ev.preventDefault());
 
-    // Show modal & focus the checkbox
     dlg.showModal();
     setTimeout(() => box.focus(), 0);
   }
 
-  // Run after the app has mounted its DOM; still blocks interaction until accepted
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initGate, { once: true });
   } else {
