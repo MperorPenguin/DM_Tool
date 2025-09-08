@@ -1162,6 +1162,96 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.innerWidth >= 960) closeMenu();
   });
 });
+/* ======================================================================
+   Reviewer Legal Notice — first-visit gate (root index only)
+   - Uses localStorage to remember acceptance
+   - Only activates when <body data-legal-gate="on"> is present
+   ====================================================================== */
+(() => {
+  const ENABLED = document.body && document.body.dataset.legalGate === 'on';
+  if (!ENABLED) return;
+
+  // Bump VALUE to force reviewers to re-accept after policy edits.
+  const LEGAL_ACK_KEY   = 'tp_legal_ack_v1';
+  const LEGAL_ACK_VALUE = 'accepted-2025-09';
+
+  function buildHTML(){
+    return `
+<dialog id="tp-legal-modal" aria-labelledby="legal-title" aria-modal="true">
+  <header class="legal-head">
+    <h2 id="legal-title">Reviewer Legal Notice</h2>
+    <span class="legal-badge">Preview Build</span>
+  </header>
+
+  <div class="legal-body">
+    <p>
+      This preview of <strong>TabletopPals</strong> is proprietary and confidential.
+      By proceeding you agree not to redistribute, copy, or disclose the app’s code,
+      designs, or assets. SRD content © Wizards of the Coast (CC-BY-4.0).
+    </p>
+    <ul>
+      <li>For review/testing only — no public sharing or reposting.</li>
+      <li>No training, dataset ingestion, or scraping of any materials.</li>
+      <li>All brand/artwork remains the property of Matthew (© 2025).</li>
+    </ul>
+  </div>
+
+  <label class="legal-checkbox">
+    <input type="checkbox" id="legal-consent" />
+    <span>I have read and agree to the <a href="legal/terms.html" target="_blank" rel="noopener">Terms</a>, <a href="legal/privacy.html" target="_blank" rel="noopener">Privacy</a>, and <a href="legal/notice.html" target="_blank" rel="noopener">Legal Notices</a>.</span>
+  </label>
+
+  <div class="legal-actions">
+    <button class="btn" id="legal-agree" type="button" disabled>Agree &amp; Enter</button>
+    <a class="btn ghost" href="legal/terms.html" target="_blank" rel="noopener">Open Terms</a>
+    <a class="btn ghost" href="legal/privacy.html" target="_blank" rel="noopener">Open Privacy</a>
+    <a class="btn ghost" href="legal/notice.html" target="_blank" rel="noopener">Open Notices</a>
+  </div>
+</dialog>`;
+  }
+
+  function initGate(){
+    // Already accepted?
+    try {
+      if (localStorage.getItem(LEGAL_ACK_KEY) === LEGAL_ACK_VALUE) return;
+    } catch (e) {
+      // If storage is blocked, we'll still show the dialog each visit.
+    }
+
+    // Inject dialog
+    const container = document.createElement('div');
+    container.innerHTML = buildHTML();
+    const dlg = container.firstElementChild;
+    document.body.appendChild(dlg);
+
+    // Wire controls
+    const agree = dlg.querySelector('#legal-agree');
+    const box   = dlg.querySelector('#legal-consent');
+
+    const update = () => { agree.disabled = !box.checked; };
+    box.addEventListener('change', update);
+    update();
+
+    agree.addEventListener('click', () => {
+      try { localStorage.setItem(LEGAL_ACK_KEY, LEGAL_ACK_VALUE); } catch (e) {}
+      dlg.close();
+    });
+
+    // Prevent closing with Esc — must make a conscious choice
+    dlg.addEventListener('cancel', (ev) => ev.preventDefault());
+
+    // Show modal & focus the checkbox
+    dlg.showModal();
+    setTimeout(() => box.focus(), 0);
+  }
+
+  // Run after the app has mounted its DOM; still blocks interaction until accepted
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGate, { once: true });
+  } else {
+    initGate();
+  }
+})();
 
 /* ========= Expose for onclicks ========= */
 window.nav=nav;

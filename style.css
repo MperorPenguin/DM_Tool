@@ -554,3 +554,64 @@ label.feedback-field, div.feedback-field{
     border-radius: 8px;
   }
 }
+/* === Reviewer Legal Notice (first-visit gate) ============================ */
+#tp-legal-modal{
+  width: min(720px, 92vw);
+  max-height: 92vh;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  box-shadow: 0 18px 40px rgba(0,0,0,.5);
+}
+#tp-legal-modal::backdrop{
+  background: rgba(0,0,0,.58);
+}
+
+.legal-head{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+.legal-head h2{ margin: 0; }
+.legal-badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding: 6px 10px; border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--input-bg);
+  font-weight: 700; font-size: 12px;
+}
+
+.legal-body{ padding: 14px 20px 6px 20px; }
+.legal-body p{ margin: 0 0 10px 0; }
+.legal-body ul{ margin: 8px 0 0 1.1em; padding: 0; }
+.legal-body li{ margin: 4px 0; }
+
+.legal-checkbox{
+  display: grid; grid-template-columns: 22px 1fr;
+  gap: 10px; align-items: start;
+  margin: 14px 20px 0 20px;
+}
+.legal-checkbox input{ inline-size: 22px; block-size: 22px; }
+
+.legal-actions{
+  display: flex; gap: 10px; flex-wrap: wrap;
+  padding: 14px 20px 18px 20px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 14px;
+}
+
+/* Disabled state for Agree button until the checkbox is ticked */
+.legal-actions .btn[disabled]{
+  opacity: .55; cursor: not-allowed; filter: grayscale(.15);
+}
+
+/* Focus visibility (match theme) */
+#tp-legal-modal :focus-visible{
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
