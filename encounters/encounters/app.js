@@ -1,5 +1,4 @@
 /* Encounter Builder — Encounters (with Enemy Admin integration + catalog dropdown) */
-
 "use strict";
 
 // ---------- Small storage helpers ----------
@@ -76,6 +75,123 @@ function showToast(msg, type='info', details){
   document.getElementById('tp_toast_host').appendChild(el);
   setTimeout(() => el.remove(), type === 'error' ? 8000 : 4000);
 }
+
+/* ==========================================================================
+   ENEMIES ADAPTER POLYFILL (makes published enemies + live sync work)
+   - Normalizes any localStorage enemy library for this page
+   - Broadcasts/receives 'tp_sync' updates so the root DM panel refreshes
+   - If a real window.EnemiesAdapter exists elsewhere, we leave it alone
+   ========================================================================== */
+(function(){
+  if (window.EnemiesAdapter) return; // real adapter exists, do nothing
+
+  const ENEMY_CANDIDATE_KEYS = ['tp_enemies','tp_enemy_library','tp_cc_enemies','tp_enemies_v2'];
+  const chan = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('tp_sync') : null;
+
+  function detectEnemyKey(){
+    try{
+      const keys = Object.keys(localStorage);
+      for(const k of ENEMY_CANDIDATE_KEYS){ if(keys.includes(k)) return k; }
+      for(const k of keys){
+        if(/enemy/i.test(k)){
+          try{ const v = JSON.parse(localStorage.getItem(k)); if(Array.isArray(v)) return k; }catch{}
+        }
+      }
+    }catch{}
+    return null;
+  }
+  let ENEMY_LIB_KEY = detectEnemyKey();
+
+  function readRaw(){
+    try{
+      if(!ENEMY_LIB_KEY) ENEMY_LIB_KEY = detectEnemyKey();
+      const raw = ENEMY_LIB_KEY ? JSON.parse(localStorage.getItem(ENEMY_LIB_KEY) || '[]') : [];
+      return Array.isArray(raw) ? raw : [];
+    }catch{ return []; }
+  }
+
+  function toSlug(s){ return String(s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+
+  // Normalize arbitrary enemy objects into {id,name,slug,cr,xp,ac,hp}
+  function normalize(list){
+    const warnings = [];
+    const out = list.map((e,i)=>{
+      const id   = e.id || e.slug || e.key || `e${i+1}`;
+      const name = e.name || e.title || 'Enemy';
+      const slug = e.slug || toSlug(name);
+      const cr   = (e.cr != null ? e.cr : (e.challenge != null ? e.challenge : ''));
+      const xp   = (e.xp != null ? e.xp : (XP_BY_CR.hasOwnProperty(cr) ? XP_BY_CR[cr] : null));
+
+      // AC
+      const ac = (e.ac != null ? e.ac
+               : (e.armor != null ? e.armor
+               : (e.armorClass != null ? e.armorClass : null)));
+
+      // HP: prefer a single number "max"
+      let hp = null;
+      if (typeof e.hp === 'number') hp = e.hp;
+      else if (Array.isArray(e.hp) && e.hp.length>=2) hp = Number(e.hp[1])||Number(e.hp[0])||null;
+      else if (e.hp && typeof e.hp === 'object') hp = Number(e.hp.max ?? e.hp.total ?? e.hp.value ?? null);
+      else if (typeof e.hitPoints === 'number') hp = e.hitPoints;
+
+      if(!name || cr==='' || xp==null){
+        warnings.push({id,name,cr,xp,ac,hp, msg:'Missing key fields (name/cr/xp) — check Enemy Admin schema.'});
+      }
+      return { id, name, slug, cr, xp, ac, hp };
+    });
+    return { list: out, warnings };
+  }
+
+  const subs = new Set();
+  const statusSubs = new Set();
+
+  function notifyAll(){
+    const raw = readRaw();
+    const {list, warnings} = normalize(raw);
+    subs.forEach(fn => { try{ fn(list); }catch{} });
+    statusSubs.forEach(fn => { try{ fn({ ok:true, count:list.length, warnings }); }catch{} });
+    return {list, warnings};
+  }
+
+  // Refresh when localStorage changes (e.g., Enemy Admin saved)
+  window.addEventListener('storage', (e)=>{
+    const k = e.key || '';
+    if (k === ENEMY_LIB_KEY || ENEMY_CANDIDATE_KEYS.includes(k) || /enemy/i.test(k)){
+      if (k) ENEMY_LIB_KEY = k;
+      const {list} = notifyAll();
+      // Re-broadcast hint so other pages (root DM) pull latest immediately
+      try{ chan?.postMessage({ type:'enemies-updated', key: ENEMY_LIB_KEY, count: list.length }); }catch{}
+    }
+  });
+
+  // Also listen to the shared channel (other pages may broadcast)
+  try{
+    chan && (chan.onmessage = (m)=>{
+      if (m?.data?.type === 'enemies-updated'){
+        if (m.data.key) ENEMY_LIB_KEY = m.data.key;
+        notifyAll();
+      }
+    });
+  }catch{}
+
+  // Expose a simple adapter API for this page
+  window.EnemiesAdapter = {
+    subscribe(cb){ if(typeof cb==='function'){ subs.add(cb); const {list}=notifyAll(); try{ cb(list); }catch{} } return ()=>subs.delete(cb); },
+    subscribeStatus(cb){ if(typeof cb==='function'){ statusSubs.add(cb); const {warnings}=notifyAll(); try{ cb({ok:true, count:readRaw().length, warnings}); }catch{} } return ()=>statusSubs.delete(cb); },
+    openAdmin(){
+      // Best-guess path; adjust if your admin lives elsewhere
+      try{ location.href = '../enemy-builder/index.html'; }catch{}
+    },
+    // Optional helper for debugging
+    _debug(){ return { key: ENEMY_LIB_KEY, sample: readRaw()[0]||null }; }
+  };
+
+  // Initial notify (so UI can render immediately)
+  notifyAll();
+})();
+
+/* ========= optional debug helpers for console ========= */
+window.dumpEnemiesAdapter = () => (window.EnemiesAdapter && window.EnemiesAdapter._debug && window.EnemiesAdapter._debug()) || null;
 
 // ---------- Published enemies wiring (auto-sync + dropdown + autofill) ----------
 let PUBLISHED = [];
@@ -541,3 +657,13 @@ function boot(){
   document.getElementById('btn-run-diagnostics')?.addEventListener('click', runDiagnostics);
 }
 boot();
+
+/* ---------- OPTIONAL: simple diagnostics to confirm sync (console) ---------- */
+window.tpEnemiesDiagnostics = () => {
+  const keyz = Object.keys(localStorage).filter(k=>/enemy/i.test(k));
+  const out = {};
+  keyz.forEach(k=>{
+    try{ out[k] = JSON.parse(localStorage.getItem(k)); }catch{ out[k]=localStorage.getItem(k); }
+  });
+  return { keys: keyz, samples: Object.fromEntries(Object.entries(out).map(([k,v])=>[k, Array.isArray(v)? v.slice(0,2): v])) };
+};
