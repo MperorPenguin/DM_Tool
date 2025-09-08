@@ -1,13 +1,18 @@
 // Enemy Builder (Admin) — vanilla JS
 // Keys:
-//   'tp_bestiary_v1'       (authoring data, admin-only)
-//   'tp_enemies_data_v1'   (published minimal array for Encounters)
-//   'tp_enemies_public_v1' (ping for cross-tab updates)
+//   'tp_bestiary_v1'         (authoring data, admin-only)
+//   'tp_enemies_data_v1'     (published minimal array for Encounters)
+//   'tp_enemies_public_v1'   (ping metadata for last publish)
+//   'tp_enemies'             (LEGACY mirror so the root DM & Encounters auto-detect it)
+// Sync:
+//   On Publish, we now broadcast on BOTH 'tp_sync' (type:'enemies-updated') and
+//   legacy 'tp_enemies' (type:'publish') channels so the root DM panel refreshes instantly.
 
 (() => {
   const BESTIARY_KEY = 'tp_bestiary_v1';
   const PUBLISH_DATA = 'tp_enemies_data_v1';
   const PUBLISH_PING = 'tp_enemies_public_v1';
+  const LEGACY_PUBLISH_MIRROR = 'tp_enemies'; // picked up by DM root/Encounters (priority key)
 
   const CR_XP = {
     '0':10,'1/8':25,'1/4':50,'1/2':100,'1':200,'2':450,'3':700,'4':1100,'5':1800,'6':2300,'7':2900,'8':3900,'9':5000,'10':5900,
@@ -202,13 +207,35 @@
         errors.slice(0,10).join('\n') + (errors.length>10?`\n…and ${errors.length-10} more.`:''));
       return;
     }
+
+    // Write to the canonical publish key…
     localStorage.setItem(PUBLISH_DATA, JSON.stringify(valid));
-    localStorage.setItem(PUBLISH_PING, JSON.stringify({ updatedAt: Date.now(), count: valid.length }));
-    // Broadcast for instant sync
-    try { const bc = new BroadcastChannel('tp_enemies'); bc.postMessage({ type:'publish', updatedAt:Date.now(), count: valid.length }); bc.close?.(); } catch {}
+    // …and also mirror to the legacy key that the DM/Encounters auto-detect first.
+    localStorage.setItem(LEGACY_PUBLISH_MIRROR, JSON.stringify(valid));
+
+    // Ping metadata
+    const stamp = { updatedAt: Date.now(), count: valid.length };
+    localStorage.setItem(PUBLISH_PING, JSON.stringify(stamp));
+
+    // Broadcast on BOTH channels:
+    // 1) New unified sync channel used by root DM & Encounters adapter
+    try {
+      const bc1 = new BroadcastChannel('tp_sync');
+      bc1.postMessage({ type: 'enemies-updated', key: LEGACY_PUBLISH_MIRROR, count: valid.length, source: 'enemy-admin' });
+      bc1.close?.();
+    } catch {}
+
+    // 2) Legacy channel some older pages might still listen to
+    try {
+      const bc2 = new BroadcastChannel('tp_enemies');
+      bc2.postMessage({ type: 'publish', updatedAt: stamp.updatedAt, count: valid.length });
+      bc2.close?.();
+    } catch {}
+
     if(warnings.length){ console.group('[Enemy Admin] Publish warnings'); warnings.forEach(w=>console.warn(w)); console.groupEnd(); }
-    alert(`Published ${valid.length} enemies to Encounters.`);
+    alert(`Published ${valid.length} enemies to Encounters/DM.`);
   }
+
   function exportJSON(){
     const blob = new Blob([JSON.stringify(state.list, null, 2)], {type:'application/json'});
     const a = document.createElement('a');
