@@ -1,6 +1,6 @@
 @import url("../CSS/theme.css");
 
-/* Legacy aliases (optional, if any older utility classes are reused) */
+/* legacy aliases if older utilities are present */
 :root{
   --lime-green:    var(--color-primary);
   --lime-600:      var(--color-primary-600);
@@ -21,8 +21,16 @@ html, body { background: var(--color-surface-1); color: var(--color-text); font-
   background: var(--color-surface-1);
   position: sticky; top: 0; z-index: 10;
 }
-.docs-header .wrap { display: flex; align-items: center; gap: 16px; justify-content: space-between; }
-.title { margin: 0; font-size: 1.5rem; }
+.docs-header .wrap { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+.title { margin: 0; font-size: 1.6rem; }
+.meta { display: flex; gap: 8px; align-items: center; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 25%, transparent);
+  border: 1px solid var(--color-primary-600);
+  font-size: .85rem; color: var(--color-text);
+}
+.muted { opacity: .8; }
 .actions { display: flex; gap: 8px; }
 
 /* Grid */
@@ -89,9 +97,16 @@ details[open] { border-color: var(--color-primary-600); }
 }
 .btn.ghost:hover { background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
 
-/* Code & pre */
+/* Code & kbd */
 code, kbd { background: var(--input-bg); border: 1px solid var(--color-border); border-radius: 6px; padding: 0 4px; }
 pre { background: var(--input-bg); border: 1px solid var(--color-border); border-radius: 10px; padding: 12px; overflow: auto; }
+kbd { font-weight: 700; }
+
+/* Callouts & legal cards */
+.callout { border: 1px solid var(--color-border); border-radius: 10px; padding: 10px; margin: 8px 0; }
+.callout.info { background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-2)); }
+.callout.warn { background: color-mix(in srgb, #f7c948 14%, var(--color-surface-2)); color: #1b1b1b; }
+.legal-card { border: 1px dashed var(--color-primary-600); border-radius: 12px; padding: 12px; }
 
 /* Search highlighting */
 mark { background: color-mix(in srgb, var(--color-primary) 30%, transparent); padding: 0 2px; border-radius: 3px; }
