@@ -13,6 +13,28 @@ const CHAR_LIB_KEY = 'tp_cc_characters';
 const worldChan = (typeof BroadcastChannel !== 'undefined')
   ? new BroadcastChannel('world-sync')
   : { postMessage: ()=>{} };
+// Auto-refresh DM Enemies when Enemy Builder updates the library key
+window.addEventListener('storage', (e) => {
+  const k = e.key || '';
+  if (k === ENEMY_LIB_KEY || ENEMY_CANDIDATE_KEYS.includes(k) || /enemy/i.test(k)) {
+    // learn the actual key if it just appeared/changed
+    if (k) ENEMY_LIB_KEY = k;
+    if (state.route === 'dm' && state.ui.dmTab === 'enemies') {
+      renderDmPage();
+    }
+  }
+});
+
+// Optional cross-tab/channel sync (Enemy Builder can broadcast after save)
+const tpSyncChan = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('tp_sync') : null;
+if (tpSyncChan){
+  tpSyncChan.onmessage = (m) => {
+    if (m?.data?.type === 'enemies-updated') {
+      if (m.data.key) ENEMY_LIB_KEY = m.data.key;
+      if (state.route === 'dm' && state.ui.dmTab === 'enemies') renderDmPage();
+    }
+  };
+}
 
 /* ========= App State ========= */
 const state = load() || {
@@ -63,6 +85,69 @@ function getPartyTokens(){
     hp: Array.isArray(c.hp) && c.hp.length >= 2 ? c.hp : null,
   }));
 }
+/* ========= Enemies library bridge (from Enemy Builder) ========= */
+/* Auto-detects common keys; falls back gracefully if none found. */
+const ENEMY_CANDIDATE_KEYS = ['tp_enemies','tp_enemy_library','tp_cc_enemies','tp_enemies_v2'];
+
+function detectEnemyKey(){
+  try{
+    const keys = Object.keys(localStorage);
+    // 1) Prefer known names in priority order
+    for(const k of ENEMY_CANDIDATE_KEYS){ if(keys.includes(k)) return k; }
+    // 2) Heuristic: any key containing "enemy" that parses to an array
+    for(const k of keys){
+      if(/enemy/i.test(k)){
+        try{ const v = JSON.parse(localStorage.getItem(k)); if(Array.isArray(v)) return k; }catch{}
+      }
+    }
+  }catch{}
+  return null;
+}
+
+let ENEMY_LIB_KEY = detectEnemyKey();
+
+function listEnemiesLib(){
+  try{
+    if(!ENEMY_LIB_KEY) ENEMY_LIB_KEY = detectEnemyKey();
+    const raw = ENEMY_LIB_KEY ? JSON.parse(localStorage.getItem(ENEMY_LIB_KEY) || '[]') : [];
+    return Array.isArray(raw) ? raw : [];
+  }catch{ return []; }
+}
+
+/* Normalize various enemy shapes → DM token model used by tokenCard(...) */
+function getEnemyTokens(){
+  const lib = listEnemiesLib();
+  return lib.map((e, i) => {
+    const id    = e.id || e.slug || e.key || `e${i+1}`;
+    const name  = e.name || e.title || 'Enemy';
+    const cls   = e.cls || e.class || e.type || 'Enemy';
+
+    // HP normalization: accept [cur,max], number, or {current,max}
+    let hp = null;
+    if (Array.isArray(e.hp) && e.hp.length >= 2) {
+      hp = [Number(e.hp[0])||0, Number(e.hp[1])||0];
+    } else if (typeof e.hp === 'number') {
+      hp = [e.hp, e.hp];
+    } else if (e.hp && (typeof e.hp === 'object')) {
+      const cur = Number(e.hp.current ?? e.hp.cur ?? e.hp.value ?? 0) || 0;
+      const max = Number(e.hp.max     ?? e.hp.total ?? e.hp.limit ?? cur) || cur;
+      hp = [cur, max];
+    } else if (typeof e.hitPoints === 'number') {
+      hp = [e.hitPoints, e.hitPoints];
+    }
+
+    const traits = Array.isArray(e.traits) ? e.traits
+                 : Array.isArray(e.tags)   ? e.tags
+                 : [];
+    const badges = [e.cr ?? e.challenge ?? e.rank, e.size, e.alignment].filter(Boolean);
+
+    return { id, name, cls, traits, badges, hp };
+  });
+}
+
+/* Optional debug helper (run in console): window.dumpEnemyLib() */
+window.dumpEnemyLib = () => ({ key: ENEMY_LIB_KEY, sample: (listEnemiesLib()[0]||null) });
+
 // Auto-refresh DM Party when Character Manager updates the library
 window.addEventListener('storage', (e)=>{
   if(e.key === CHAR_LIB_KEY){
@@ -617,7 +702,10 @@ function computeEnvironmentEffects(){
   const aTrait = new Set(rule.advIfTrait || []);
   const dTrait = new Set(rule.disIfTrait || []);
   const allPcs = getPartyTokens().map(t=>({...t, kind:'pc'}));
-  const others = ['npc','enemy'].flatMap(k => (state.tokens[k]||[]).map(t=>({...t, kind:k})));
+  const libEn = getEnemyTokens();
+const others = []
+  .concat((state.tokens.npc||[]).map(t => ({...t, kind:'npc'})))
+  .concat((libEn.length ? libEn : (state.tokens.enemy||[])).map(t => ({...t, kind:'enemy'})));
   const all = allPcs.concat(others);
 
   const lines = all.map(t=>{
@@ -638,9 +726,10 @@ function renderDmPage(){
   const bodyEl = document.getElementById('dm-body');
   if(!tabsEl || !bodyEl) return;
 
-  const npcs   = state.tokens.npc||[];
-  const enemies= state.tokens.enemy||[];
-  const tab    = state.ui.dmTab||'party';
+const npcs     = state.tokens.npc || [];
+const libEnems = getEnemyTokens();                 // ← from Enemy Builder
+const enemies  = libEnems.length ? libEnems : (state.tokens.enemy || []); // fallback to internal
+const tab      = state.ui.dmTab || 'party';
 
   tabsEl.innerHTML = `
     ${dmTabButton('party','Party',tab==='party')}
