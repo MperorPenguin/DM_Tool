@@ -161,6 +161,91 @@ a.btn { text-decoration: none; }
 .grid.cols-6 { grid-template-columns: repeat(6, minmax(0,1fr)); }
 
 /* =========================================================
+   Enemy Builder form: layout hardening (no HTML/JS changes)
+   Prevents squished/overlapping fields on desktop & mobile
+   ========================================================= */
+
+:root{
+  --eb-field-min: 260px;   /* comfy min for regular fields */
+  --eb-short-min: 140px;   /* compact min for short number fields */
+}
+
+/* Make fieldsets use a resilient, auto-fitting grid */
+#enemy-form fieldset.grid{
+  display: grid;
+  align-items: start;
+  grid-auto-flow: row dense;                /* fills gaps neatly */
+}
+
+/* Force all “cols-*” in this form to be responsive:
+   auto-fit + minmax prevents columns getting too skinny */
+#enemy-form fieldset.grid[class*="cols-"]{
+  grid-template-columns: repeat(auto-fit, minmax(var(--eb-field-min), 1fr));
+}
+
+/* Stats block has many short fields → allow smaller mins there */
+#enemy-form fieldset.grid.cols-6{
+  grid-template-columns: repeat(auto-fit, minmax(var(--eb-short-min), 1fr));
+}
+
+/* Legend should span the entire row */
+#enemy-form fieldset legend{
+  grid-column: 1 / -1;
+  margin-bottom: .25rem;
+}
+
+/* Fields behave as clean blocks; allow content to shrink without overflow */
+#enemy-form .field{
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  min-width: 0;                              /* critical to prevent overflow */
+}
+
+/* Inputs/selects/areas fill their column and never overflow */
+#enemy-form input,
+#enemy-form select,
+#enemy-form textarea{
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;                              /* prevents content overlap */
+}
+
+/* Textareas shouldn’t inherit fixed input height */
+#enemy-form textarea{
+  height: auto;
+  min-height: 120px;
+  max-height: 60vh;
+  line-height: 1.35;
+  resize: vertical;
+}
+
+/* Compact number fields in the Stats section */
+#enemy-form .field.short{
+  /* allow even smaller widths before wrapping */
+  --eb-field-min: var(--eb-short-min);
+}
+
+/* Action row: allow wrapping on small screens and keep buttons aligned */
+#enemy-form .row{
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--grid-gap, .75rem);
+}
+#enemy-form .row.end{ justify-content: flex-end; }
+
+/* Responsive nudges: progressively collapse columns as space tightens */
+@media (max-width: 1200px){
+  #enemy-form fieldset.grid.cols-3{ grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+}
+@media (max-width: 900px){
+  #enemy-form fieldset.grid[class*="cols-"]{ grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+}
+@media (max-width: 680px){
+  #enemy-form fieldset.grid[class*="cols-"]{ grid-template-columns: 1fr; } /* single column on phones */
+}
+
+/* =========================================================
    FORM / LAYOUT HARDENING (global, incl. Enemy Builder)
    - Prevent squished fields
    - Make textareas auto-size
