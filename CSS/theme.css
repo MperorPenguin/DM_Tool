@@ -160,6 +160,74 @@ a.btn { text-decoration: none; }
 .grid.cols-5 { grid-template-columns: repeat(5, minmax(0,1fr)); }
 .grid.cols-6 { grid-template-columns: repeat(6, minmax(0,1fr)); }
 
+/* =========================================================
+   FORM / LAYOUT HARDENING (global, incl. Enemy Builder)
+   - Prevent squished fields
+   - Make textareas auto-size
+   - Mobile-first, no HTML/JS changes
+   ========================================================= */
+
+/* Sensible minimum widths for grid columns */
+:root{
+  --field-min: 260px;         /* comfy minimum for normal fields */
+  --field-min-compact: 220px; /* for denser multi-column groups */
+}
+
+/* Let labels and long values wrap instead of overlapping */
+label, .label { overflow-wrap: anywhere; word-break: normal; }
+
+/* Field blocks stack their label/control cleanly */
+.field { display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
+
+/* Inputs already get a fixed control height – make textareas flexible */
+textarea{
+  height: auto;               /* override fixed control height */
+  min-height: 120px;
+  max-height: 60vh;
+  line-height: 1.35;
+  padding-top: .75rem;
+  padding-bottom: .75rem;
+  resize: vertical;
+  width: 100%;
+}
+
+/* Safer grid definitions inside panels/cards:
+   use minmax(...) so columns never collapse too small */
+.panel .grid.cols-2 { grid-template-columns: repeat(2, minmax(var(--field-min), 1fr)); }
+.panel .grid.cols-3 { grid-template-columns: repeat(3, minmax(var(--field-min), 1fr)); }
+.panel .grid.cols-4 { grid-template-columns: repeat(4, minmax(var(--field-min-compact), 1fr)); }
+.panel .grid.cols-5 { grid-template-columns: repeat(5, minmax(var(--field-min-compact), 1fr)); }
+.panel .grid.cols-6 { grid-template-columns: repeat(6, minmax(var(--field-min-compact), 1fr)); }
+
+/* Responsive breakpoints to reduce columns progressively */
+@media (max-width: 1280px){
+  .panel .grid.cols-3 { grid-template-columns: repeat(2, minmax(var(--field-min), 1fr)); }
+  .panel .grid.cols-4,
+  .panel .grid.cols-5,
+  .panel .grid.cols-6 { grid-template-columns: repeat(3, minmax(var(--field-min-compact), 1fr)); }
+}
+@media (max-width: 1100px){
+  .panel .grid.cols-4,
+  .panel .grid.cols-5,
+  .panel .grid.cols-6 { grid-template-columns: repeat(2, minmax(var(--field-min-compact), 1fr)); }
+}
+@media (max-width: 860px){
+  .panel .grid.cols-2,
+  .panel .grid.cols-3,
+  .panel .grid.cols-4,
+  .panel .grid.cols-5,
+  .panel .grid.cols-6 { grid-template-columns: 1fr; }
+}
+
+/* Safety: rows of controls wrap cleanly when space is tight */
+.row { display: flex; gap: var(--grid-gap); flex-wrap: wrap; }
+.row > * { min-width: 0; flex: 1 1 var(--field-min); }
+
+/* Number inputs shouldn’t show spinner buttons (saves space) */
+input[type="number"]{ -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
 /* -------------------- Header / Tabs – mobile polish -------------------- */
 
 /* Sticky header for better mobile UX */
