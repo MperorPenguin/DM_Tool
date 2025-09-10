@@ -431,3 +431,50 @@ body::after{
 @media (max-width: 480px){
   .site-footer{ font-size: 11px; padding: 12px 12px; }
 }
+/* =========================================================
+   Form controls: normalize checkbox & radio sizes (global)
+   ========================================================= */
+
+:root{
+  /* visual size of the box/dot; adjust if ever needed */
+  --check-size: 1.05rem;   /* desktop default */
+  --radio-size: 1.05rem;
+}
+
+/* Override the generic input sizing for checkboxes/radios */
+input[type="checkbox"],
+input[type="radio"]{
+  height: var(--check-size);
+  width:  var(--check-size);
+  padding: 0;                 /* undo text-input padding */
+  border-radius: 4px;         /* radios will override */
+  flex: 0 0 auto;             /* never stretch in flex rows */
+  accent-color: var(--color-primary); /* native tick color */
+  vertical-align: middle;
+}
+
+/* Circular radios */
+input[type="radio"]{ border-radius: 50%; height: var(--radio-size); width: var(--radio-size); }
+
+/* Keep them easy to tap on touch devices without looking huge */
+@media (pointer: coarse){
+  :root{
+    --check-size: 1.2rem;
+    --radio-size: 1.2rem;
+  }
+}
+
+/* Focus ring consistent with the rest of the UI */
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible{
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Row labels with checkboxes: tidy alignment and spacing */
+label.row{ align-items: center; gap: .5rem; cursor: pointer; }
+label.row > input[type="checkbox"],
+label.row > input[type="radio"]{ margin-inline-start: 0; }
+
+/* Optional: smaller secondary text in rows */
+label.row small{ opacity: .8; }
